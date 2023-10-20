@@ -1,0 +1,87 @@
+spring:
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: root
+    url: jdbc:mysql://127.0.0.1:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+    username: root
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: root
+    password: root
+    virtual-host: im
+    publisher-returns: true
+    publisher-confirm-type: correlated
+    template:
+      mandatory: true
+      retry:
+        enabled: true
+    listener:
+      simple:
+        retry:
+          max-attempts: 5
+  redis:
+    host: 127.0.0.1
+    port: 6379
+  aop:
+    proxy-target-class: true
+server:
+  port: 8000
+
+dubbo:
+  application:
+    name: message_service
+  registry:
+    address: zookeeper://localhost:2181
+  protocol:
+    name: dubbo
+    port: -1 # 为了随机分配端口
+
+
+# Curator 配置
+curator:
+  connect-string: localhost:2181
+  session-timeout-ms: 5000
+  connection-timeout-ms: 5000
+
+
+appConfig:
+  appId: 10000
+  privateKey: 123456 # 接口密钥
+  imRouteWay: 3 # 路由策略1轮训 2随机 3hash
+  consistentHashWay: 1 # 如果选用一致性hash的话具体hash算法 1 TreeMap 2 自定义Map
+  groupMaxMemberCount: 500
+  sendMessageCheckFriend: false # 发送消息是否校验关系链
+  sendMessageCheckBlack: false # 发送消息是否校验黑名单
+  callbackUrl: http://127.0.0.1:8300/callback
+  modifyUserAfterCallback: false # 用户资料变更之后回调开关
+  addFriendAfterCallback: false # 添加好友之后回调开关
+  addFriendBeforeCallback: false # 添加好友之前回调开关
+  modifyFriendAfterCallback: false # 修改好友之后回调开关
+  deleteFriendAfterCallback: false # 删除好友之后回调开关
+  addFriendShipBlackAfterCallback: false #添加黑名单之后回调开关
+  deleteFriendShipBlackAfterCallback: false #删除黑名单之后回调开关
+  createGroupAfterCallback: false # 创建群聊之后回调开关
+  modifyGroupAfterCallback: false # 修改群聊之后回调开关
+  destroyGroupAfterCallback: false # 解散群聊之后回调开关
+  deleteGroupMemberAfterCallback: false # 删除群成员之后回调
+  addGroupMemberAfterCallback: false # 拉人入群之后回调
+  addGroupMemberBeforeCallback: false # 拉人入群之前回调
+  sendMessageAfterCallback: false # 发送单聊消息之后
+  sendMessageBeforeCallback: false # 发送单聊消息之前
+  sendGroupMessageAfterCallback: false # 发送群聊消息之后
+  sendGroupMessageBeforeCallback: false # 发送群聊消息之前
+  offlineMessageCount: 1000 #离线消息存储条数
+  deleteConversationSyncMode: 1 #1多段同步
+
+httpclient:
+  maxTotal: 100
+  defaultMaxPerRoute: 50
+  connectTimeout: 2000
+  connectionRequestTimeout: 2000
+  socketTimeout: 5000
+  staleConnectionCheckEnabled: true
+
+
