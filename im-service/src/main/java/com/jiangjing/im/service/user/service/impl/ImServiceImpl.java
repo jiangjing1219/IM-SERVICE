@@ -203,7 +203,6 @@ public class ImServiceImpl implements ImUserService {
             // 需要判断是否是管理员发送，还是用户本身去修改
             messageProducer.sendToUserByConditions(req.getUserId(), req.getAppId(), req.getClientType(), req.getImei(), UserEventCommand.USER_MODIFY, userModifyPack);
 
-
             // 修改成功，需要其他的业务逻辑，修改成功之后回调
             if (appConfig.isModifyUserAfterCallback()) {
                 callbackService.callback(req.getAppId(), Constants.CallbackCommand.MODIFY_USER_AFTER, JSONObject.toJSONString(req));

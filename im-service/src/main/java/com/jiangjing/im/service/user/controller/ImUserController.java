@@ -96,7 +96,8 @@ public class ImUserController {
             //根据配置的路由算法，返回 im 的链接地址
             String routed = routeHandle.routeServer(allNode, req.getUserId());
             RouteInfo parse = RouteInfoParseUtil.parse(routed);
-            return ResponseVO.successResponse(parse);
+            RouteInfo routeInfo = new RouteInfo("7.tcp.cpolar.top",13395);
+            return ResponseVO.successResponse(routeInfo);
         }
         return ResponseVO.errorResponse();
     }
@@ -184,7 +185,5 @@ public class ImUserController {
         req.setOperate(identifier);
         return ResponseVO.successResponse(imUserStatusService.queryUserOnlineStatus(req));
     }
-
-
 
 }

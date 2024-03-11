@@ -109,9 +109,9 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            // 构建 session 的 key
+            // 构建 session 的 key  =  appid：userSession：userid   —— clientType:imei —— UserSession
             String key = message.getMessageHeader().getAppId() + Constants.RedisConstants.USER_SESSION_CONSTANTS + loginPack.getUserId();
-            // 构建登录端的标识
+            // 构建登录端的标识 _ 是否需要限制同一端多次登录？？
             String filed = message.getMessageHeader().getClientType() + ":" + message.getMessageHeader().getImei();
             // 将指定的session保存到redis中，本质就是构建用户登录的一个路由层，当前用户登录的是设备信息、登录状态、在哪台netty实例登录
             redisTemplate.opsForHash().put(key, filed, JSONObject.toJSONString(userSession));
@@ -149,7 +149,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             channelHandlerContext.channel().writeAndFlush(loginSuccessAckPack);
 
         } else if (command == SystemCommand.LOGOUT.getCommand()) {
-            //删除session
+            //删除session —— 离线状态变更
             sessionSocketHolder.removeUserSession((NioSocketChannel) channelHandlerContext.channel());
             // 心跳事件
         } else if (command == SystemCommand.PING.getCommand()) {

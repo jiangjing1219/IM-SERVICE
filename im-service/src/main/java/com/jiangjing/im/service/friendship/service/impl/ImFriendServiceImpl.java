@@ -165,11 +165,11 @@ public class ImFriendServiceImpl implements ImFriendService {
                     // 添加失败，直接返回失败的结果
                     return responseVO;
                 }
+                return ResponseVO.successResponse().setMessage("已发送好友申请");
             } else {
                 return ResponseVO.errorResponse(FriendShipErrorCode.TO_IS_YOUR_FRIEND);
             }
         }
-        return ResponseVO.successResponse();
     }
 
     /**
@@ -270,6 +270,7 @@ public class ImFriendServiceImpl implements ImFriendService {
             toItem_1.setCreateTime(System.currentTimeMillis());
             toItem_1.setBlack(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode());
             toItem_1.setFriendSequence(friendshipSeq);
+            toItem_1.setRemark("");
             int insert = imFriendShipMapper.insert(toItem_1);
             if (insert != 1) {
                 return ResponseVO.errorResponse(FriendShipErrorCode.ADD_FRIEND_ERROR, "B 添加 A 为好友失败");
@@ -448,7 +449,7 @@ public class ImFriendServiceImpl implements ImFriendService {
         deleteAllFriendPack.setSequence(friendshipSeq);
         messageProducer.sendToUserByConditions(req.getFromId(), req.getAppId(), req.getClientType(), req.getImei(), FriendshipEventCommand.FRIEND_ALL_DELETE, deleteAllFriendPack);
 
-        // 更新缓存
+        // 更新缓存 ———  redis 中缓存的了当前好友关系的最大 seq 信息，客户端在拉取消息是是需要要拉取这个 MaxSeq 和本地的 seq 之间的变更操作即可
         writeUserSeq.writeUserSeq(req.getAppId(), req.getFromId(), Constants.SeqConstants.FRIENDSHIP_SEQ, friendshipSeq);
         return ResponseVO.successResponse();
     }
@@ -487,6 +488,7 @@ public class ImFriendServiceImpl implements ImFriendService {
         query.eq("app_id", req.getAppId());
         query.eq("from_id", req.getFromId());
         List<ImFriendShipEntity> list = imFriendShipMapper.selectList(query);
+        list = imFriendShipMapper.getAllFriendShip(req.getAppId(), req.getFromId());
         return ResponseVO.successResponse(list);
     }
 
@@ -678,7 +680,7 @@ public class ImFriendServiceImpl implements ImFriendService {
             // 双向校验  使用 inner join 只能查出由记录的好友信息
             resp = imFriendShipMapper.checkFriendShipBlackBoth(req);
         }
-        return null;
+        return ResponseVO.successResponse(resp);
     }
 
     /**

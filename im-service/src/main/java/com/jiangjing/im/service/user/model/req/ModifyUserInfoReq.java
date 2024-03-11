@@ -40,7 +40,7 @@ public class ModifyUserInfoReq extends RequestBase {
     // 加好友验证类型（Friend_AllowType） 1需要验证
     private Integer friendAllowType;
 
-    private String extra;
+        private String extra;
 
 
 }

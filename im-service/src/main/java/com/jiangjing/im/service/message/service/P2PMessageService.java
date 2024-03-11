@@ -18,7 +18,7 @@ import com.jiangjing.im.service.utils.ConversationIdGenerate;
 import com.jiangjing.im.service.utils.MessageProducer;
 import com.jiangjing.im.service.utils.ThreadPoolExecutorUtils;
 import com.jiangjing.pack.message.ChatMessageAck;
-import com.jiangjing.pack.message.MessageReciveServerAckPack;
+import com.jiangjing.pack.message.MessageReceiveServerAckPack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -193,7 +193,7 @@ public class P2PMessageService {
     private void ack(MessageContent messageContent, ResponseVO responseVO) {
         logger.info("msg ack,msgId={},checkResult{}", messageContent.getMessageId(), responseVO.getCode());
         ChatMessageAck chatMessageAck = new
-                ChatMessageAck(messageContent.getMessageId(), messageContent.getMessageSequence());
+                ChatMessageAck(messageContent.getMessageId(), messageContent.getMessageSequence(), messageContent.getMessageKey());
         // 在给发送端回复ack时，携带消息本身的id信息，标识是那条消息的ack，前端方可操作
         responseVO.setData(chatMessageAck);
         // 回复一个 ack 给指定的端
@@ -207,7 +207,7 @@ public class P2PMessageService {
      * @param messageContent
      */
     public void receiverAck(MessageContent messageContent) {
-        MessageReciveServerAckPack serverAckPack = new MessageReciveServerAckPack();
+        MessageReceiveServerAckPack serverAckPack = new MessageReceiveServerAckPack();
         serverAckPack.setMessageSequence(messageContent.getMessageSequence());
         serverAckPack.setMessageKey(messageContent.getMessageKey());
         serverAckPack.setToId(messageContent.getFromId());
@@ -215,7 +215,7 @@ public class P2PMessageService {
         serverAckPack.setServerSend(true);
         ClientInfo clientInfo = new ClientInfo();
         BeanUtils.copyProperties(messageContent, clientInfo);
-        messageProducer.sendToUserByOne(messageContent.getFromId(), MessageCommand.MSG_RECIVE_ACK, serverAckPack, clientInfo);
+        messageProducer.sendToUserByOne(messageContent.getFromId(), MessageCommand.MSG_RECEIVE_ACK, serverAckPack, clientInfo);
     }
 
 
@@ -226,7 +226,8 @@ public class P2PMessageService {
      * @param clientInfo
      */
     private void syncToSender(MessageContent messageContent, ClientInfo clientInfo) {
-        messageProducer.sendToUserExceptClient(messageContent.getFromId(), MessageCommand.MSG_P2P, messageContent, clientInfo);
+        System.out.println("MSG_P2P_SYNC 发送端消息同步: "+ messageContent);
+        messageProducer.sendToUserExceptClient(messageContent.getFromId(), MessageCommand.MSG_P2P_SYNC, messageContent, clientInfo);
     }
 
     /**

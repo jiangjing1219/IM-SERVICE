@@ -19,5 +19,4 @@ public class UpdateConversationReq extends RequestBase {
 
     private String fromId;
 
-
 }

@@ -2,11 +2,11 @@ package com.jiangjing.im.common.enums.command;
 
 public enum ConversationEventCommand implements Command {
 
-    //删除会话
-    CONVERSATION_DELETE(5000),
+    //删除会话 5000
+    CONVERSATION_DELETE(0x1388),
 
-    //删除会话
-    CONVERSATION_UPDATE(5001),
+    //删除会话 5001
+    CONVERSATION_UPDATE(0x1389),
 
     ;
 

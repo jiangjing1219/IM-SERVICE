@@ -17,5 +17,4 @@ public class SubscribeUserOnlineStatusReq extends RequestBase {
 
     private Long subTime;
 
-
 }

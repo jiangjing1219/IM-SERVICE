@@ -113,6 +113,7 @@ public class GroupMessageProducer {
                 }
             }
         } else {
+            // 发送给所有的群成员
             List<String> memberIds = imGroupMemberService.getGroupMemberIds(groupId, appId);
             for (String memberId : memberIds) {
                 // 如果当前用户操作发起端 不是 webapi ，那么只需要通知其他的登录端进行书话剧同步即可

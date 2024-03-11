@@ -2,6 +2,7 @@ package com.jiangjing.im.common.model.message;
 
 import com.jiangjing.im.common.model.ClientInfo;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * @description:
@@ -9,6 +10,7 @@ import lombok.Data;
  * @version: 1.0
  */
 @Data
+@ToString
 public class MessageContent extends ClientInfo {
 
     private String messageId;

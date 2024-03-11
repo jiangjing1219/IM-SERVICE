@@ -4,6 +4,8 @@ import com.jiangjing.im.common.model.ClientInfo;
 import lombok.Data;
 
 /**
+ * 不需要 messageKey 只要小于该  messageSequence 的消息都是已读
+ *
  * @description:
  * @author: lld
  * @version: 1.0
@@ -20,5 +22,4 @@ public class MessageReadedContent extends ClientInfo {
     private String toId;
 
     private Integer conversationType;
-
 }

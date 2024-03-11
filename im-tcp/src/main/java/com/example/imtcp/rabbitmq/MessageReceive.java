@@ -110,7 +110,6 @@ public class MessageReceive {
                 if (dto.getClientType() == ClientType.WEB.getCode()) {
                     continue;
                 }
-
                 // 本地登录的是web端
                 if (clientType == ClientType.WEB.getCode()) {
                     continue;
@@ -131,18 +130,15 @@ public class MessageReceive {
                 }
 
                 // 移动端判断    android  / ios 判断
-                boolean isSameClient = (clientType == ClientType.IOS.getCode() ||
-                        clientType == ClientType.ANDROID.getCode()) &&
-                        (dto.getClientType() == ClientType.IOS.getCode() ||
-                                dto.getClientType() == ClientType.ANDROID.getCode());
+                boolean isSameClient = (clientType == ClientType.IOS.getCode() || clientType == ClientType.ANDROID.getCode()) &&
+                        (dto.getClientType() == ClientType.IOS.getCode() || dto.getClientType() == ClientType.ANDROID.getCode());
 
                 // pc端判断  mac / windows 判断
-                if ((clientType == ClientType.MAC.getCode() ||
-                        clientType == ClientType.WINDOWS.getCode()) &&
-                        (dto.getClientType() == ClientType.MAC.getCode() ||
-                                dto.getClientType() == ClientType.WINDOWS.getCode())) {
+                if ((clientType == ClientType.MAC.getCode() || clientType == ClientType.WINDOWS.getCode()) &&
+                        (dto.getClientType() == ClientType.MAC.getCode() || dto.getClientType() == ClientType.WINDOWS.getCode())) {
                     isSameClient = true;
                 }
+
                 // 当前登录和遍历的Channel 的 ClientType 冲突了，需要判断是否是本机登录，不是就需要下线
                 if (isSameClient && !(clientType + ":" + imei).equals(dto.getClientType() + ":" + dto.getImei())) {
                     MessagePack<Object> pack = new MessagePack<>();

@@ -17,7 +17,7 @@ public class CreateGroupReq extends RequestBase {
     //群主id
     private String ownerId;
 
-    //群类型 1私有群（类似微信） 2公开群(类似qq）
+    //群类型 1、私有群（类似微信） 2、公开群(类似qq）
     private Integer groupType;
 
     private String groupName;
@@ -32,7 +32,7 @@ public class CreateGroupReq extends RequestBase {
 
     private String photo;//群头像
 
-    private Integer MaxMemberCount;
+    private Integer maxMemberCount;
 
     /**
      * 群成员信息

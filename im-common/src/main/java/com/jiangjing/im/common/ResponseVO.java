@@ -45,7 +45,7 @@ public class ResponseVO<T> implements Serializable {
         return new ResponseVO(enums.getCode(), enums.getError());
     }
 
-    public static ResponseVO errorResponse(ApplicationExceptionEnum enums,String msg) {
+    public static ResponseVO errorResponse(ApplicationExceptionEnum enums, String msg) {
         return new ResponseVO(enums.getCode(), enums.getError()).setMessage(msg);
     }
 
@@ -74,7 +74,7 @@ public class ResponseVO<T> implements Serializable {
     }
 
     public ResponseVO setMessage(String message) {
-        this.message += ","+message;
+        this.message = message;
         return this;
     }
 }

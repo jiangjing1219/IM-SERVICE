@@ -1,8 +1,12 @@
 package com.jiangjing.im.service.group.dao;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.jiangjing.im.service.group.model.req.GroupMemberDto;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @description:
@@ -51,4 +55,7 @@ public class ImGroupEntity {
     private Long updateTime;
 
     private String extra;
+
+    @TableField(exist = false)
+    private List<GroupMemberDto> memberList;
 }

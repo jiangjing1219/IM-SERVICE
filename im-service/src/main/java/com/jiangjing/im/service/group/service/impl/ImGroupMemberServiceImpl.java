@@ -24,12 +24,14 @@ import com.jiangjing.im.service.group.model.resp.AddMemberResp;
 import com.jiangjing.im.service.group.model.resp.GetRoleInGroupResp;
 import com.jiangjing.im.service.group.service.ImGroupMemberService;
 import com.jiangjing.im.service.group.service.ImGroupService;
+import com.jiangjing.im.service.user.service.ImUserService;
 import com.jiangjing.im.service.utils.CallbackService;
 import com.jiangjing.im.service.utils.GroupMessageProducer;
 import com.jiangjing.pack.group.AddGroupMemberPack;
 import com.jiangjing.pack.group.GroupMemberSpeakPack;
 import com.jiangjing.pack.group.RemoveGroupMemberPack;
 import com.jiangjing.pack.group.UpdateGroupMemberPack;
+import com.jiangjing.im.service.user.dao.ImUserDataEntity;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +68,9 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
     @Autowired
     GroupMessageProducer groupMessageProducer;
 
+    @Autowired
+    ImUserService imUserService;
+
 
     /**
      * 新增群成员信息
@@ -97,10 +102,12 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
         query.eq("app_id", appId);
         query.eq("member_id", groupMemberDto.getMemberId());
         ImGroupMemberEntity memberDto = imGroupMemberMapper.selectOne(query);
+        ResponseVO<ImUserDataEntity> toInfo = imUserService.getSingleUserInfo(groupMemberDto.getMemberId(), appId);
         if (memberDto == null) {
             // 执行新增操作,java 规范不将入参作为变量
             memberDto = new ImGroupMemberEntity();
             BeanUtils.copyProperties(groupMemberDto, memberDto);
+            memberDto.setAlias(toInfo.isOk() ? toInfo.getData().getNickName() : "");
             memberDto.setGroupId(groupId);
             memberDto.setAppId(appId);
             memberDto.setJoinTime(System.currentTimeMillis());
@@ -114,6 +121,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
             memberDto = new ImGroupMemberEntity();
             BeanUtils.copyProperties(groupMemberDto, memberDto);
             memberDto.setJoinTime(System.currentTimeMillis());
+            memberDto.setAlias(toInfo.isOk() ? toInfo.getData().getNickName() : "");
             int update = imGroupMemberMapper.update(memberDto, query);
             if (update == 1) {
                 return ResponseVO.successResponse();
@@ -132,10 +140,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
      */
     @Override
     public ResponseVO<List<GroupMemberDto>> getGroupMember(String groupId, Integer appId) {
-        QueryWrapper<GroupMemberDto> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("group_id", groupId);
-        queryWrapper.eq("app_id", appId);
-        List<GroupMemberDto> imGroupMemberEntities = imGroupMemberMapper.getGroupMember(queryWrapper);
+        List<GroupMemberDto> imGroupMemberEntities = imGroupMemberMapper.getGroupMember(appId,groupId);
         return ResponseVO.successResponse(imGroupMemberEntities);
     }
 
@@ -266,8 +271,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
 
             try {
                 // 使用回调之后的需要需要添加的用户信息，可以在回调中自定义拦截
-                memberDtos
-                        = JSON.parseArray(JSON.toJSONString(responseVO.getData()), GroupMemberDto.class);
+                memberDtos = JSON.parseArray(JSON.toJSONString(responseVO.getData()), GroupMemberDto.class);
             } catch (Exception e) {
                 e.printStackTrace();
                 logger.error("GroupMemberAddBefore 回调失败：{}", req.getAppId());
@@ -389,7 +393,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
             RemoveGroupMemberPack removeGroupMemberPack = new RemoveGroupMemberPack();
             removeGroupMemberPack.setGroupId(req.getGroupId());
             removeGroupMemberPack.setMember(req.getMemberId());
-            groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), req.getGroupId(), GroupEventCommand.ADDED_MEMBER, removeGroupMemberPack, new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
+            groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), req.getGroupId(), GroupEventCommand.DELETED_MEMBER, removeGroupMemberPack, new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
 
             // 回调业务操作
             if (appConfig.isDeleteGroupMemberAfterCallback()) {
@@ -472,7 +476,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
         // 同步登录端，通知其他群成员
         UpdateGroupMemberPack pack = new UpdateGroupMemberPack();
         BeanUtils.copyProperties(req, pack);
-        groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), req.getGroupId(), GroupEventCommand.ADDED_MEMBER, pack, new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
+        groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), req.getGroupId(), GroupEventCommand.UPDATED_MEMBER, pack, new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
 
         return ResponseVO.successResponse();
     }
@@ -543,7 +547,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
         // 禁言标识同步
         GroupMemberSpeakPack pack = new GroupMemberSpeakPack();
         BeanUtils.copyProperties(req, pack);
-        groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), req.getGroupId(), GroupEventCommand.ADDED_MEMBER, pack, new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
+        groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), req.getGroupId(), GroupEventCommand.SPEAK_GROUP_MEMBER, pack, new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
 
         return ResponseVO.successResponse();
     }

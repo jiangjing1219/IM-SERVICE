@@ -19,5 +19,4 @@ public class MessageReceiveAckContent extends ClientInfo {
 
     private Long messageSequence;
 
-
 }

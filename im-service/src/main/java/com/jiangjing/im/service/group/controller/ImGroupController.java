@@ -131,7 +131,7 @@ public class ImGroupController {
     }
 
     /**
-     * 禁言群
+     * 禁言群/解除禁言
      *
      * @param req
      * @param appId

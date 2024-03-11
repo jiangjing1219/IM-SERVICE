@@ -125,4 +125,11 @@ public interface ImFriendShipMapper extends BaseMapper<ImFriendShipEntity> {
      */
     @Select(" select to_id from im_friendship where from_id = #{userId} AND app_id = #{appId} and status = 1 and black = 1 ")
     List<String> getAllFriendId(Integer appId, String userId);
+
+    @Select("<script>" +
+            "SELECT a.app_id, a.from_id, a.to_id, a.remark, a.status, a.black, a.create_time, a.friend_sequence, a.black_sequence, a.add_source, a.extra, b.nick_name " +
+            "FROM im_friendship as a LEFT JOIN im_user_data as b on a.to_id = b.user_id " +
+            "WHERE a.app_id = #{appId} AND a.from_id = #{fromId}" +
+            "</script>" )
+    List<ImFriendShipEntity> getAllFriendShip(Integer appId, String fromId);
 }

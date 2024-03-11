@@ -58,15 +58,17 @@ public class ConversationService {
     }
 
     /**
+     *
+     *
      * @param messageContent
      */
     public void messageMarkRead(MessageReadedContent messageContent) {
-        String toId = messageContent.getToId();
+        String toId = messageContent.getFromId();
         // 群组的会话，toId 是 groupID
         if (messageContent.getConversationType() == ConversationTypeEnum.GROUP.getCode()) {
             toId = messageContent.getGroupId();
         }
-        String fromId = messageContent.getFromId();
+        String fromId = messageContent.getToId();
         Integer conversationType = messageContent.getConversationType();
         String conversationId = convertConversationId(conversationType, fromId, toId);
         QueryWrapper<ImConversationSetEntity> queryWrapper = new QueryWrapper<>();
@@ -82,6 +84,7 @@ public class ConversationService {
             conversationSet.setConversationId(conversationId);
             // 会话本身的 seq，增量来取的标识
             conversationSet.setSequence(seq);
+            conversationSet.setFromId(fromId);
             conversationSet.setToId(toId);
             // 已读消息的 seq
             conversationSet.setReadedSequence(messageContent.getMessageSequence());
@@ -112,7 +115,7 @@ public class ConversationService {
         clientInfo.setClientType(req.getClientType());
         clientInfo.setAppId(req.getAppId());
         clientInfo.setImei(req.getImei());
-        messageProducer.sendToUserExceptClient(req.getFromId(), ConversationEventCommand.CONVERSATION_UPDATE, pack, clientInfo);
+        messageProducer.sendToUserExceptClient(req.getFromId(), ConversationEventCommand.CONVERSATION_DELETE, pack, clientInfo);
         return ResponseVO.successResponse();
     }
 
@@ -137,7 +140,7 @@ public class ConversationService {
             long seq = redisSeq.getSeq(req.getAppId() + ":" + Constants.SeqConstants.CONVERSATION_SEQ);
             imConversationSetEntity.setSequence(seq);
             // 更新置顶字段
-            if (req.getIsMute() != null) {
+            if (req.getIsTop() != null) {
                 imConversationSetEntity.setIsTop(req.getIsTop());
             }
             // 更新免打扰字段

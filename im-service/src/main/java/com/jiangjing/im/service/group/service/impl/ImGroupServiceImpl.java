@@ -26,11 +26,11 @@ import com.jiangjing.im.service.group.model.resp.GetRoleInGroupResp;
 import com.jiangjing.im.service.group.service.ImGroupMemberService;
 import com.jiangjing.im.service.group.service.ImGroupService;
 import com.jiangjing.im.service.sequence.RedisSeq;
+import com.jiangjing.im.service.user.dao.ImUserDataEntity;
+import com.jiangjing.im.service.user.service.ImUserService;
 import com.jiangjing.im.service.utils.CallbackService;
 import com.jiangjing.im.service.utils.GroupMessageProducer;
-import com.jiangjing.pack.group.CreateGroupPack;
-import com.jiangjing.pack.group.DestroyGroupPack;
-import com.jiangjing.pack.group.UpdateGroupInfoPack;
+import com.jiangjing.pack.group.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +51,9 @@ public class ImGroupServiceImpl implements ImGroupService {
 
     @Autowired
     ImGroupDataMapper imGroupDataMapper;
+
+    @Autowired
+    ImUserService imUserService;
 
     @Autowired
     ImGroupMemberService imGroupMemberService;
@@ -158,14 +161,19 @@ public class ImGroupServiceImpl implements ImGroupService {
 
         // 群主也是群成员
         GroupMemberDto groupMemberDto = new GroupMemberDto();
+        ResponseVO<ImUserDataEntity> toInfo = imUserService.getSingleUserInfo(req.getOwnerId(), req.getAppId());
+        groupMemberDto.setAlias(toInfo.isOk() ? toInfo.getData().getNickName() : "");
+        groupMemberDto.setSpeakDate(0L);
+        groupMemberDto.setSpeakFlag(0);
+        groupMemberDto.setJoinType("0");
         groupMemberDto.setMemberId(req.getOwnerId());
         groupMemberDto.setRole(GroupMemberRoleEnum.OWNER.getCode());
         groupMemberDto.setJoinTime(System.currentTimeMillis());
         imGroupMemberService.addGroupMember(req.getGroupId(), req.getAppId(), groupMemberDto);
 
-        //插入群成员
-        for (GroupMemberDto ggroupMemberDto : req.getMember()) {
-            imGroupMemberService.addGroupMember(req.getGroupId(), req.getAppId(), ggroupMemberDto);
+        // 插入群成员
+        for (GroupMemberDto groupMember : req.getMember()) {
+            imGroupMemberService.addGroupMember(req.getGroupId(), req.getAppId(), groupMember);
         }
 
         // 创建成功之后的消息通知
@@ -176,6 +184,7 @@ public class ImGroupServiceImpl implements ImGroupService {
         clientInfo.setAppId(req.getAppId());
         clientInfo.setImei(req.getImei());
         clientInfo.setClientType(req.getClientType());
+        // 通知其所有的群成员
         groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), imGroupEntity.getGroupId(), GroupEventCommand.CREATED_GROUP, createGroupPack, clientInfo);
 
         // 新增群之后的回调
@@ -308,6 +317,12 @@ public class ImGroupServiceImpl implements ImGroupService {
                 query.in("group_type", req.getGroupType());
             }
             List<ImGroupEntity> groupList = imGroupDataMapper.selectList(query);
+            groupList.forEach(group -> {
+                ResponseVO<List<GroupMemberDto>> listResponseVO = imGroupMemberService.getGroupMember(group.getGroupId(), group.getAppId());
+                if (listResponseVO.isOk()) {
+                    group.setMemberList(listResponseVO.getData());
+                }
+            });
             resp.setGroupList(groupList);
             // 如果存在分页限制
             if (req.getLimit() == null) {
@@ -428,6 +443,15 @@ public class ImGroupServiceImpl implements ImGroupService {
         }
         imGroupMemberService.transferGroupMember(req.getOwnerId(), req.getGroupId(), req.getAppId());
 
+        // 群主切换成功，需要通知所有人
+        TransferGroupPack transferGroupPack = new TransferGroupPack();
+        BeanUtils.copyProperties(req, transferGroupPack);
+        ClientInfo clientInfo = new ClientInfo();
+        clientInfo.setAppId(req.getAppId());
+        clientInfo.setImei(req.getImei());
+        clientInfo.setClientType(req.getClientType());
+        groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), imGroupEntity.getGroupId(), GroupEventCommand.TRANSFER_GROUP, transferGroupPack, clientInfo);
+
         return ResponseVO.successResponse();
     }
 
@@ -473,6 +497,21 @@ public class ImGroupServiceImpl implements ImGroupService {
         wrapper.eq("group_id", req.getGroupId());
         wrapper.eq("app_id", req.getAppId());
         imGroupDataMapper.update(update, wrapper);
+
+        MuteGroupPack muteGroupPack = new MuteGroupPack();
+        muteGroupPack.setGroupId(req.getGroupId());
+        ClientInfo clientInfo = new ClientInfo();
+        clientInfo.setAppId(req.getAppId());
+        clientInfo.setImei(req.getImei());
+        clientInfo.setClientType(req.getClientType());
+        // 判断是禁言还是解除禁言
+        if (req.getMute() == 1) {
+            // 禁言通知
+            groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), req.getGroupId(), GroupEventCommand.MUTE_GROUP, muteGroupPack, clientInfo);
+        } else {
+            // 解除禁言通知
+            groupMessageProducer.sendMessage(req.getOperate(), req.getAppId(), req.getGroupId(), GroupEventCommand.UNMUTE_GROUP, muteGroupPack, clientInfo);
+        }
         return ResponseVO.successResponse();
     }
 

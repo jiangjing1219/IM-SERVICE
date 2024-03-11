@@ -43,4 +43,7 @@ public class ImFriendShipEntity {
 
     private String extra;
 
+    @TableField(exist = false)
+    private String nickName;
+
 }

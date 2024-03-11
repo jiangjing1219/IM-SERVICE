@@ -25,5 +25,4 @@ public class GetJoinedGroupReq extends RequestBase {
     //第几页
     private Integer offset;
 
-
 }

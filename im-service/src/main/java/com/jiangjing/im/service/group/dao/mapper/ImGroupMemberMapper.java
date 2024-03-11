@@ -1,6 +1,5 @@
 package com.jiangjing.im.service.group.dao.mapper;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.jiangjing.im.service.group.dao.ImGroupMemberEntity;
 import com.jiangjing.im.service.group.model.req.GroupMemberDto;
@@ -27,7 +26,7 @@ public interface ImGroupMemberMapper extends BaseMapper<ImGroupMemberEntity> {
             " join_time ," +
             " join_type " +
             " from im_group_member where app_id = #{appId} AND group_id = #{groupId} ")
-    List<GroupMemberDto> getGroupMember(QueryWrapper<GroupMemberDto> queryWrapper);
+    List<GroupMemberDto> getGroupMember(Integer appId, String groupId);
 
 
     @Select("select group_id from im_group_member where app_id = #{appId} AND member_id = #{memberId} ")

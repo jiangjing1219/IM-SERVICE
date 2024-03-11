@@ -46,7 +46,7 @@ public class StoreP2PMessageReceiver {
             storeMessageService.doStoreP2PMessage(doStoreP2pMessageDto);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
         } catch (IOException e) {
-            logger.error("处理消息出现异常：{}", e.getMessage());
+            final String errorMessage = String.format("处理消息出现异常: %s", e.getMessage());
             logger.error("RMQ_CHAT_TRAN_ERROR", e);
             logger.error("NACK_MSG:{}", messageStr);
             /*

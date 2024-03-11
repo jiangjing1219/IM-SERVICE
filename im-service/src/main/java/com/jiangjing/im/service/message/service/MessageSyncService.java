@@ -90,7 +90,8 @@ public class MessageSyncService {
      * @param receiveAckContent
      */
     public void receiveMark(MessageReceiveAckContent receiveAckContent) {
-        messageProducer.sendToUserByAll(receiveAckContent.getToId(), receiveAckContent.getAppId(), MessageCommand.MSG_RECIVE_ACK, receiveAckContent);
+        // toId 是原消息的发送方
+        messageProducer.sendToUserByAll(receiveAckContent.getToId(), receiveAckContent.getAppId(), MessageCommand.MSG_RECEIVE_ACK, receiveAckContent);
     }
 
     /**
@@ -107,7 +108,7 @@ public class MessageSyncService {
         // 2、接收端消息已读同步
         MessageReadedPack messageReadedPack = new MessageReadedPack();
         BeanUtils.copyProperties(messageContent, messageReadedPack);
-        messageProducer.sendToUserExceptClient(messageReadedPack.getFromId(), MessageCommand.MSG_READED_NOTIFY, messageReadedPack, messageContent);
+        messageProducer.sendToUserExceptClient(messageReadedPack.getFromId(), MessageCommand.MSG_READED_SYNC, messageReadedPack, messageContent);
         // 3、发送给该消息的发送方
         messageProducer.sendToUserByAll(messageContent.getToId(), messageContent.getAppId(), MessageCommand.MSG_READED_RECEIPT, messageReadedPack);
     }
@@ -126,7 +127,7 @@ public class MessageSyncService {
         // 2、通知其他端该消息已读
         MessageReadedPack messageReadedPack = new MessageReadedPack();
         BeanUtils.copyProperties(messageContent, messageReadedPack);
-        messageProducer.sendToUserExceptClient(messageContent.getFromId(), GroupEventCommand.MSG_GROUP_READED_NOTIFY, messageReadedPack, messageContent);
+        messageProducer.sendToUserExceptClient(messageContent.getFromId(), GroupEventCommand.MSG_GROUP_READED_SYNC, messageReadedPack, messageContent);
         // 3、通知发送端该消息已读,(排除自己发的消息，在其端读取)
         if (!messageContent.getFromId().equals(messageContent.getToId())) {
             messageProducer.sendToUserByAll(messageContent.getToId(), messageContent.getAppId(), GroupEventCommand.MSG_GROUP_READED_RECEIPT, messageReadedPack);
@@ -163,6 +164,8 @@ public class MessageSyncService {
         if (!CollectionUtils.isEmpty(respList)) {
             OfflineMessageContent offlineMessageContent = respList.get(respList.size() - 1);
             resp.setCompleted(maxSeq <= offlineMessageContent.getMessageKey());
+        } else {
+            resp.setCompleted(true);
         }
         return ResponseVO.successResponse(resp);
     }
@@ -226,7 +229,7 @@ public class MessageSyncService {
             redisTemplate.opsForZSet().add(toQueue, JSON.toJSONString(offlineMessageContent), messageKey);
 
             // 回复撤回成功的 ack
-            recallAck(pack, ResponseVO.successResponse(), messageContent);
+            recallAck(pack, ResponseVO.successResponse(pack), messageContent);
 
             // 同步其他端
             messageProducer.sendToUserExceptClient(messageContent.getFromId(), MessageCommand.MSG_RECALL_SYNC, pack, messageContent);
@@ -238,7 +241,7 @@ public class MessageSyncService {
             // 1、获取所有的群成员id，每个群成员的离线消息队列都需要发起撤回消息命令
             List<String> memberIds = imGroupMemberService.getGroupMemberIds(messageContent.getToId(), messageContent.getAppId());
             // 2、回复撤销操作成功的ack
-            recallAck(pack, ResponseVO.successResponse(), messageContent);
+            recallAck(pack, ResponseVO.successResponse(pack), messageContent);
             // 3、同步其他的登录端
             messageProducer.sendToUserExceptClient(messageContent.getFromId(), MessageCommand.MSG_RECALL_SYNC, pack, messageContent);
             for (String memberId : memberIds) {
@@ -292,6 +295,8 @@ public class MessageSyncService {
             queryWrapper.eq("app_id", imMessageHistoryEntity.getAppId());
             ImMessageBodyEntity messageBody = imMessageBodyMapper.selectOne(queryWrapper);
             if (messageBody != null) {
+                resp.setMessageBody(messageBody.getMessageBody());
+                resp.setDelFlag(messageBody.getDelFlag());
                 p2pMessageHistoryResps.add(resp);
             }
         }

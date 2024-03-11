@@ -119,7 +119,7 @@ public class GroupMessageService {
      * @param clientInfo
      */
     private void syncToSender(MessageContent messageContent, ClientInfo clientInfo) {
-        messageProducer.sendToUserExceptClient(messageContent.getFromId(), GroupEventCommand.MSG_GROUP, messageContent, clientInfo);
+        messageProducer.sendToUserExceptClient(messageContent.getFromId(), GroupEventCommand.MSG_GROUP_SYNC, messageContent, clientInfo);
     }
 
     /**

@@ -68,7 +68,7 @@ public class P2pChatOperateReceiver {
                 MessageContent messageContent = messageJson.toJavaObject(MessageContent.class);
                 p2PMessageService.process(messageContent);
                 // 接收端接收到消息回复的 ack 消息
-            } else if (command == MessageCommand.MSG_RECIVE_ACK.getCommand()) {
+            } else if (command == MessageCommand.MSG_RECEIVE_ACK.getCommand()) {
                 // 解析 ack 确认包的信息
                 MessageReceiveAckContent receiveAckContent = messageJson.toJavaObject(MessageReceiveAckContent.class);
                 messageSyncService.receiveMark(receiveAckContent);
@@ -91,7 +91,8 @@ public class P2pChatOperateReceiver {
              * param2:是否批量确认此id之前的所有消息
              * param3: true 消息重新发送，false 消息丢弃
              */
-            channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+            //channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
         }
 
     }

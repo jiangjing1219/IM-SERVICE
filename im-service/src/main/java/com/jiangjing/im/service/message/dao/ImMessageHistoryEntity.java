@@ -19,6 +19,8 @@ public class ImMessageHistoryEntity {
 
     private String ownerId;
 
+    private String messageBody;
+
     /**
      * messageBodyId
      */

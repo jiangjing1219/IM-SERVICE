@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class P2pMessageHistoryResp {
 
-    private String messageKey;
+    private Long messageKey;
 
     private String ownerId;
 
@@ -33,8 +33,10 @@ public class P2pMessageHistoryResp {
     /**
      * 序列号
      */
-    private Long messageSequence;
+    private Long sequence;
 
     private Integer delFlag;
+
+    private String fromId;
 
 }

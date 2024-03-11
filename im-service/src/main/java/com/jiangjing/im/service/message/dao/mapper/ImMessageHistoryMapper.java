@@ -23,10 +23,13 @@ public interface ImMessageHistoryMapper extends BaseMapper<ImMessageHistoryEntit
      */
     Integer insertBatchSomeColumn(Collection<ImMessageHistoryEntity> entityList);
 
-    @Select("SELECT * FROM im_message_history " +
+    // todo 写死了 limit ， messageBody
+    @Select(
+            " <script> " +
+            "SELECT * FROM im_message_history " +
             "WHERE owner_id = #{ownerId} " +
-            "AND app_id = #{appId}" +
-            "AND to_id = #{toId} " +
+            "AND app_id = #{appId} " +
+            "AND from_id in ( #{ownerId},#{toId} )" +
             "<if test='startTime != null'>" +
             "AND message_time >= #{startTime} " +
             "</if>" +
@@ -43,8 +46,9 @@ public interface ImMessageHistoryMapper extends BaseMapper<ImMessageHistoryEntit
             "</if>" +
             "#{messageSequence} " +
             "</if>" +
-            "LIMIT #{limit}" +
-            "order by sequence asc"
+            "order by sequence asc " +
+            "LIMIT 20 " +
+            " </script> "
     )
     List<ImMessageHistoryEntity> queryMessageHistory(P2pMessageHistoryReq req);
 }

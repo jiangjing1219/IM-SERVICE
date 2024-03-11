@@ -82,6 +82,7 @@ public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestServic
             request.setRemark(dto.getRemark());
             request.setSequence(redisSeqSeq);
             request.setCreateTime(System.currentTimeMillis());
+            request.setUpdateTime(request.getCreateTime());
             imFriendShipRequestMapper.insert(request);
         } else {
             // 3、如果是已经存在的好友申请，那么直接需要更新申请里面的记录即可
@@ -153,7 +154,7 @@ public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestServic
         ApproverFriendRequestPack approverFriendRequestPack = new ApproverFriendRequestPack();
         approverFriendRequestPack.setId(req.getId());
         approverFriendRequestPack.setStatus(req.getStatus());
-        messageProducer.sendToUserByAll(imFriendShipRequestEntity.getToId(), req.getAppId(), FriendshipEventCommand.FRIEND_REQUEST_APPROVER, approverFriendRequestPack);
+        messageProducer.sendToUserByAll(imFriendShipRequestEntity.getFromId(), req.getAppId(), FriendshipEventCommand.FRIEND_REQUEST_APPROVER, approverFriendRequestPack);
 
         return ResponseVO.successResponse();
     }
