@@ -1,9 +1,14 @@
 package com.example.imtcp.server;
 
+import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
+import com.alibaba.nacos.api.naming.NamingFactory;
+import com.alibaba.nacos.api.naming.NamingService;
 import com.example.imtcp.config.ImConfigInfo;
+import com.example.imtcp.handler.HeartBeatServerHandler;
 import com.example.imtcp.handler.NettyServerHandler;
 import com.jiangjing.WebSocketMessageDecoder;
 import com.jiangjing.WebSocketMessageEncoder;
+import com.jiangjing.im.common.constant.Constants;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -13,6 +18,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +28,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
+
+import java.net.InetAddress;
 
 /**
  * @author jingjing
@@ -36,15 +44,21 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
 
     @Autowired
     NettyServerHandler nettyServerHandler;
+
+    @Autowired
+    HeartBeatServerHandler heartBeatServerHandler;
+
+    @Autowired
+    NacosDiscoveryProperties nacosDiscoveryProperties;
+
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private ChannelFuture serverChannelFuture;
+    private NamingService naming;
 
 
     /**
      * Spring 容器启动成功之后会调用该方法
-     *
-     * @param event
      */
     @SneakyThrows
     @Override
@@ -61,14 +75,18 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
                     .childOption(ChannelOption.TCP_NODELAY, true) // 是否禁用Nagle算法 简单点说是否批量发送数据 true关闭 false开启。 开启的话可以减少一定的网络开销，但影响消息实时性
                     .childOption(ChannelOption.SO_KEEPALIVE, true) // 保活开关2h没有数据服务端会发送心跳包
                     .childHandler(new ChannelInitializer<SocketChannel>() {
+                        /**
+                         * 初始化channel，客户端连接成功时回调
+                         * @param socketChannel
+                         */
                         @Override
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        protected void initChannel(SocketChannel socketChannel) {
                             ChannelPipeline pipeline = socketChannel.pipeline();
                             // websocket 基于http协议，所以要有http编解码器
                             pipeline.addLast("http-codec", new HttpServerCodec());
                             // 对写大数据流的支持
                             pipeline.addLast("http-chunked", new ChunkedWriteHandler());
-                            // 几乎在netty中的编程，都会使用到此hanler
+                            // 几乎在netty中的编程，都会使用到此 handler
                             pipeline.addLast("aggregator", new HttpObjectAggregator(65535));
                             /**
                              * websocket 服务器处理的协议，用于指定给客户端连接访问的路由 : /ws
@@ -79,16 +97,22 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
                             pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
                             pipeline.addLast(new WebSocketMessageDecoder());
                             pipeline.addLast(new WebSocketMessageEncoder());
+                            socketChannel.pipeline().addLast(new IdleStateHandler(20, 0, 0));
+                            socketChannel.pipeline().addLast(heartBeatServerHandler);
                             pipeline.addLast(nettyServerHandler);
                         }
                     });
             serverChannelFuture = serverBootstrap.bind(imConfigInfo.getWebSocketPort()).sync();
+            // 向 Nacos 发起注册
+            naming = NamingFactory.createNamingService(nacosDiscoveryProperties.getServerAddr());
+            naming.registerInstance(Constants.IM_NACOS_SERVICE_WEB, InetAddress.getLocalHost().getHostAddress(), imConfigInfo.getWebSocketPort(), "DEFAULT");
             logger.info("WebSocket server started,bind port is " + imConfigInfo.getWebSocketPort());
         } else if (event instanceof ContextClosedEvent) {
             // 容器关闭时，关闭服务端
             serverChannelFuture.channel().close();
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_WEB, InetAddress.getLocalHost().getHostAddress(), imConfigInfo.getWebSocketPort(), "DEFAULT");
             logger.info("WebSocket server closed,port:" + imConfigInfo.getTcpPort());
         }
     }

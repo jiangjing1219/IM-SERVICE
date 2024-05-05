@@ -19,7 +19,7 @@ public class ImConfigInfo {
     private Integer tcpPort;
 
     /**
-     * websocket 启动端口
+     * websocket 启动端口  重构 reactor
      */
     private Integer webSocketPort;
 
@@ -39,16 +39,21 @@ public class ImConfigInfo {
     private Long heartBeatTime;
 
     /**
+     * 心跳超时次数
+     */
+    private Long maxReadTimeoutCount;
+
+    /**
      * 当前服务的标识
      */
     private Integer brokerId;
 
     /**
      * 登录模式（登录的设备：web、windows、mac、ios、Android）
-     *  1、单端登录：只允许一端在线
-     *  2、双端登录（移动端和电脑端）
-     *  3、三端登录（web、电脑端、移动端）
-     *  4、多端登录（不做登录限制）
+     * 1、单端登录：只允许一端在线
+     * 2、双端登录（移动端和电脑端）
+     * 3、三端登录（web、电脑端、移动端）
+     * 4、多端登录（不做登录限制）
      */
     private Integer loginModel;
 

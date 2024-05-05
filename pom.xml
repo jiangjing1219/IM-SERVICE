@@ -42,6 +42,7 @@
     <springboot.version>2.3.12.RELEASE</springboot.version>
     <netty.version>4.1.35.Final</netty.version>
     <feign.version>8.18.0</feign.version>
+    <nacos-discovery-spring-boot.version>0.2.1</nacos-discovery-spring-boot.version>
   </properties>
 
   <dependencies>
@@ -156,6 +157,11 @@
         <version>${netty.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>com.alibaba.boot</groupId>
+        <artifactId>nacos-discovery-spring-boot-starter</artifactId>
+        <version>${nacos-discovery-spring-boot.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

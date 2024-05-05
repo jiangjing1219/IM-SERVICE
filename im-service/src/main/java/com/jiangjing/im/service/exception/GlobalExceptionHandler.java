@@ -19,18 +19,18 @@ import java.util.Set;
 
 /**
  * @author Admin
- *
+ * <p>
  * 使用 aop 对全局的 RestController 进行统一的一场处理
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
 
-    @ExceptionHandler(value=Exception.class)
+    @ExceptionHandler(value = Exception.class)
     @ResponseBody
-    public ResponseVO unknowException(Exception e){
+    public ResponseVO unknowException(Exception e) {
         e.printStackTrace();
-        ResponseVO resultBean =new ResponseVO();
+        ResponseVO resultBean = new ResponseVO();
         resultBean.setCode(BaseErrorCode.SYSTEM_ERROR.getCode());
         resultBean.setMessage(BaseErrorCode.SYSTEM_ERROR.getError());
         /**
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
     public Object handleMethodArgumentNotValidException(ConstraintViolationException ex) {
 
         Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
-        ResponseVO resultBean =new ResponseVO();
+        ResponseVO resultBean = new ResponseVO();
         resultBean.setCode(BaseErrorCode.PARAMETER_ERROR.getCode());
         for (ConstraintViolation<?> constraintViolation : constraintViolations) {
             PathImpl pathImpl = (PathImpl) constraintViolation.getPropertyPath();
@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public Object applicationExceptionHandler(ApplicationException e) {
         // 使用公共的结果类封装返回结果, 这里我指定状态码为
-        ResponseVO resultBean =new ResponseVO();
+        ResponseVO resultBean = new ResponseVO();
         resultBean.setCode(e.getCode());
         resultBean.setMessage(e.getError());
         return resultBean;
@@ -84,10 +84,10 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = BindException.class)
     @ResponseBody
-    public Object  handleException2(BindException ex) {
+    public Object handleException2(BindException ex) {
         FieldError err = ex.getFieldError();
         String message = "参数{".concat(err.getField()).concat("}").concat(err.getDefaultMessage());
-        ResponseVO resultBean =new ResponseVO();
+        ResponseVO resultBean = new ResponseVO();
         resultBean.setCode(BaseErrorCode.PARAMETER_ERROR.getCode());
         resultBean.setMessage(message);
         return resultBean;
@@ -98,7 +98,7 @@ public class GlobalExceptionHandler {
     //json格式
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     @ResponseBody
-    public Object  handleException1(MethodArgumentNotValidException ex) {
+    public Object handleException1(MethodArgumentNotValidException ex) {
         StringBuilder errorMsg = new StringBuilder();
         BindingResult re = ex.getBindingResult();
         for (ObjectError error : re.getAllErrors()) {
@@ -106,7 +106,7 @@ public class GlobalExceptionHandler {
         }
         errorMsg.delete(errorMsg.length() - 1, errorMsg.length());
 
-        ResponseVO resultBean =new ResponseVO();
+        ResponseVO resultBean = new ResponseVO();
         resultBean.setCode(BaseErrorCode.PARAMETER_ERROR.getCode());
         resultBean.setMessage(BaseErrorCode.PARAMETER_ERROR.getError() + " : " + errorMsg.toString());
         return resultBean;

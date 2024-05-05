@@ -10,6 +10,9 @@ import com.jiangjing.im.service.message.service.P2PMessageService;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * @author Admin
+ */
 @DubboService(version = "1.0.0.0", group = "im")
 public class CheckMessageServiceImpl implements CheckMessageService {
 

@@ -1,6 +1,11 @@
 package com.jiangjing.im.service.user.service.impl;
 
+import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.NamingFactory;
+import com.alibaba.nacos.api.naming.NamingService;
+import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.jiangjing.im.common.ResponseVO;
 import com.jiangjing.im.common.config.AppConfig;
@@ -25,6 +30,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +63,15 @@ public class ImServiceImpl implements ImUserService {
     @Autowired
     ImGroupService imGroupService;
 
+    @Autowired
+    NacosDiscoveryProperties nacosDiscoveryProperties;
+
+    NamingService naming;
+
+    @PostConstruct
+    public void init() throws NacosException {
+        naming = NamingFactory.createNamingService(nacosDiscoveryProperties.getServerAddr());
+    }
 
     @Override
     public ResponseVO importUser(ImportUserReq req) {
@@ -238,5 +253,20 @@ public class ImServiceImpl implements ImUserService {
         // 3、组装返回值
         entries.put("maxGroupSeq", maxGroupSeq);
         return ResponseVO.successResponse(entries);
+    }
+
+    /**
+     * 获取一个健康的实例节点
+     *
+     * @param serviceName
+     * @return
+     */
+    @Override
+    public Instance selectOneHealthyInstance(String serviceName) {
+        try {
+            return naming.selectOneHealthyInstance(serviceName);
+        } catch (Exception e) {
+            throw new ApplicationException(UserErrorCode.SERVER_NOT_AVAILABLE);
+        }
     }
 }

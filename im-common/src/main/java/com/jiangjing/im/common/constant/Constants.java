@@ -26,11 +26,17 @@ public class Constants {
 
     public static final String READ_TIME = "readTime";
 
+    public static final String READ_TIME_COUNT = "readTimeCount";
+
     public static final String IM_CORE_ZK_ROOT = "/im-coreRoot";
 
     public static final String IM_CORE_ZK_ROOT_TCP = "/tcp";
 
     public static final String IM_CORE_ZK_ROOT_WEB = "/web";
+
+    public static final String IM_NACOS_SERVICE_TCP = "im_tcp_service";
+
+    public static final String IM_NACOS_SERVICE_WEB = "im_web_service";
 
     /**
      * Redis 相关的常量

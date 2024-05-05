@@ -35,31 +35,45 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * IdleStateHandler 发生超时事件是回调该方法
-     *
-     * @param ctx
-     * @param evt
-     * @throws Exception
      */
     @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        IdleStateEvent event = (IdleStateEvent) evt;
-        String eventType = null;
-        switch (event.state()) {
-            case READER_IDLE:
-                eventType = "读空闲";
-                break;
-            case WRITER_IDLE:
-                eventType = "写空闲";
-                // 不处理
-                break;
-            case ALL_IDLE:
-                eventType = "读写空闲";
-                // 发生全超时事件，判断需要关闭链接，获取channel上的最后一次读数据的时间属性（发生读事件时写入）
-                Long lastReadTime = (Long) ctx.channel().attr(AttributeKey.valueOf(Constants.READ_TIME)).get();
-                if (System.currentTimeMillis() - lastReadTime > imConfigInfo.getHeartBeatTime()) {
-                    sessionSocketHolder.offlineUserSession((NioSocketChannel) ctx.channel());
-                }
-                break;
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            switch (event.state()) {
+                case READER_IDLE:
+                    handleAllIdle(ctx);
+                    break;
+                case WRITER_IDLE:
+                    // 不处理
+                    break;
+                case ALL_IDLE:
+                    break;
+            }
+        }
+    }
+
+
+    /**
+     * 1、超时次数统计，保存在channel的属性中，由于当前的 HeartBeatServerHandler 是交给 Spring 容器管理的是单例对象，所以每个客户端连接都会共用同一个对象，所以需要将超时次数保存在 channel 的属性中，
+     * 2、如果超时次数默认达到 3 次就会，断开连接
+     *
+     * @param ctx
+     */
+    private void handleAllIdle(ChannelHandlerContext ctx) {
+        try {
+            AttributeKey<Long> readTimeCountKey = AttributeKey.valueOf(Constants.READ_TIME_COUNT);
+            Long idleCount = ctx.channel().attr(readTimeCountKey).get();
+            // 接收到心跳信息的是否会重置为 0 ，所以先自加
+            ++idleCount;
+            if (idleCount > imConfigInfo.getMaxReadTimeoutCount()) {
+                sessionSocketHolder.offlineUserSession((NioSocketChannel) ctx.channel());
+            } else {
+                ctx.channel().attr(readTimeCountKey).set(idleCount);
+            }
+        } catch (Exception e) {
+            // 日志记录或其他异常处理逻辑
+            e.printStackTrace();
         }
     }
 }

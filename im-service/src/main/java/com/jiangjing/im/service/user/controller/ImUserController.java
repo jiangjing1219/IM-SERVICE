@@ -1,24 +1,21 @@
 package com.jiangjing.im.service.user.controller;
 
+import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.jiangjing.im.common.ResponseVO;
 import com.jiangjing.im.common.constant.Constants;
 import com.jiangjing.im.common.enums.ClientType;
 import com.jiangjing.im.common.route.RouteHandle;
 import com.jiangjing.im.common.route.RouteInfo;
-import com.jiangjing.im.common.utils.RouteInfoParseUtil;
 import com.jiangjing.im.service.user.model.req.*;
 import com.jiangjing.im.service.user.service.ImUserService;
 import com.jiangjing.im.service.user.service.ImUserStatusService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * @description:
@@ -32,9 +29,6 @@ public class ImUserController {
 
     @Autowired
     ImUserService imUserService;
-
-    @Autowired
-    CuratorFramework curatorFramework;
 
     @Autowired
     RouteHandle routeHandle;
@@ -80,24 +74,21 @@ public class ImUserController {
      * @return
      */
     @RequestMapping("/login")
-    public ResponseVO login(@RequestBody @Validated LoginReq req, Integer appId) throws Exception {
+    public ResponseVO login(@RequestBody @Validated LoginReq req, Integer appId) {
         req.setAppId(appId);
         ResponseVO login = imUserService.login(req);
         if (login.isOk()) {
             //获取 zk 上所有的im服务的地址
-            List<String> allNode;
+            Instance instance = null;
             if (ClientType.WEB.getCode() == req.getClientType()) {
                 // web 端的登录，获取 webSocket 的地址
-                allNode = curatorFramework.getChildren().forPath(Constants.IM_CORE_ZK_ROOT + Constants.IM_CORE_ZK_ROOT_WEB);
+                instance = imUserService.selectOneHealthyInstance(Constants.IM_NACOS_SERVICE_WEB);
             } else {
                 // 移动、pc 端的获取 tcp 链接地址
-                allNode = curatorFramework.getChildren().forPath(Constants.IM_CORE_ZK_ROOT + Constants.IM_CORE_ZK_ROOT_TCP);
+                instance = imUserService.selectOneHealthyInstance(Constants.IM_NACOS_SERVICE_TCP);
             }
             //根据配置的路由算法，返回 im 的链接地址
-            String routed = routeHandle.routeServer(allNode, req.getUserId());
-            RouteInfo parse = RouteInfoParseUtil.parse(routed);
-            RouteInfo routeInfo = new RouteInfo("7.tcp.cpolar.top",13395);
-            return ResponseVO.successResponse(routeInfo);
+            return ResponseVO.successResponse(new RouteInfo(instance.getIp(), instance.getPort()));
         }
         return ResponseVO.errorResponse();
     }

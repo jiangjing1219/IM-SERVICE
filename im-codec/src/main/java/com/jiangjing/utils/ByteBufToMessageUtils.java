@@ -58,7 +58,6 @@ public class ByteBufToMessageUtils {
         byte[] bodyData = new byte[bodyLen];
         in.readBytes(bodyData);
 
-
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setAppId(appId);
         messageHeader.setClientType(clientType);

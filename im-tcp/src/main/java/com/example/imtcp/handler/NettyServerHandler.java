@@ -30,6 +30,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -62,6 +63,9 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
     @Autowired
     SessionSocketHolder sessionSocketHolder;
 
+    @Autowired
+    RedissonClient redissonClient;
+
     /**
      * 远程调用 dubbo 服务
      */
@@ -70,6 +74,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Message message) {
+
         Integer command = message.getMessageHeader().getCommand();
         // 登陆操作
         if (SystemCommand.LOGIN.getCommand() == command) {
@@ -156,6 +161,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             // 写入当前心跳的时间
             channelHandlerContext.channel()
                     .attr(AttributeKey.valueOf(Constants.READ_TIME)).set(System.currentTimeMillis());
+            // 重置心跳的计算次数 —— 连续超时才会强制退出
+            channelHandlerContext.channel().attr(AttributeKey.valueOf(Constants.READ_TIME_COUNT)).set(0L);
             // 如果发送的是单聊消息或者是群聊消息，那么直接在这里校验发送方和接收方的合法性，不合法直接返回 ack ，不需要投递到 mq
         } else if (command == MessageCommand.MSG_P2P.getCommand()
                 || command == GroupEventCommand.MSG_GROUP.getCommand()) {

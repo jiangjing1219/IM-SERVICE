@@ -1,10 +1,14 @@
 package com.example.imtcp.server;
 
+import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
+import com.alibaba.nacos.api.naming.NamingFactory;
+import com.alibaba.nacos.api.naming.NamingService;
 import com.example.imtcp.config.ImConfigInfo;
 import com.example.imtcp.handler.HeartBeatServerHandler;
 import com.example.imtcp.handler.NettyServerHandler;
 import com.jiangjing.MessageDecoder;
 import com.jiangjing.MessageEncoder;
+import com.jiangjing.im.common.constant.Constants;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -24,6 +28,8 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
+import java.net.InetAddress;
+
 /**
  * @author jingjing
  * @date 2023/6/16 20:31
@@ -41,10 +47,14 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
     @Autowired
     HeartBeatServerHandler heartBeatServerHandler;
 
+    @Autowired
+    NacosDiscoveryProperties nacosDiscoveryProperties;
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private ChannelFuture serverChannelFuture;
+
+    NamingService naming;
 
     /**
      * Spring 容器启动成功之后会调用该方法
@@ -69,18 +79,23 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline().addLast(new MessageDecoder());
                             socketChannel.pipeline().addLast(new MessageEncoder());
-                            socketChannel.pipeline().addLast(new IdleStateHandler(0, 0, 10));
+                            socketChannel.pipeline().addLast(new IdleStateHandler(3000, 0, 0));
                             socketChannel.pipeline().addLast(heartBeatServerHandler);
                             socketChannel.pipeline().addLast(nettyServerHandler);
                         }
                     });
             serverChannelFuture = serverBootstrap.bind(imConfigInfo.getTcpPort()).sync();
-            logger.info("Netty server started,bind port is " + imConfigInfo.getTcpPort());
+            logger.info("Netty server started, bind port is " + imConfigInfo.getTcpPort());
+            // 向 Nacos 发起注册
+            naming = NamingFactory.createNamingService(nacosDiscoveryProperties.getServerAddr());
+            naming.registerInstance(Constants.IM_NACOS_SERVICE_TCP, InetAddress.getLocalHost().getHostAddress(), imConfigInfo.getTcpPort(), "DEFAULT");
         } else if (event instanceof ContextClosedEvent) {
             serverChannelFuture.channel().close();
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-            logger.info("Netty server closed,port:" + imConfigInfo.getTcpPort());
+            // 取消注册
+            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_TCP, InetAddress.getLocalHost().getHostAddress(), imConfigInfo.getTcpPort(), "DEFAULT");
+            logger.info("Netty server closed, port:" + imConfigInfo.getTcpPort());
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.jiangjing.im.service.user.service;
 
 
+import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.jiangjing.im.common.ResponseVO;
 import com.jiangjing.im.service.user.model.req.*;
 
@@ -13,6 +14,7 @@ public interface ImUserService {
 
     /**
      * 批量导入用户信息
+     *
      * @param req
      * @return
      */
@@ -20,6 +22,7 @@ public interface ImUserService {
 
     /**
      * 批量删除用户
+     *
      * @param req
      * @return
      */
@@ -27,6 +30,7 @@ public interface ImUserService {
 
     /**
      * 批量获取用户信息
+     *
      * @param req
      * @return
      */
@@ -34,6 +38,7 @@ public interface ImUserService {
 
     /**
      * 获取单个用户
+     *
      * @param userId
      * @param appId
      * @return
@@ -42,14 +47,15 @@ public interface ImUserService {
 
     /**
      * 修改用户信息
+     *
      * @param req
      * @return
      */
     ResponseVO modifyUserInfo(ModifyUserInfoReq req);
 
     /**
-     *
      * 登录
+     *
      * @param req
      * @return
      */
@@ -57,9 +63,17 @@ public interface ImUserService {
 
     /**
      * 获取当前用户的额  sequence 信息
-     * 
+     *
      * @param req
      * @return
      */
     ResponseVO getUserSequence(GetUserSequenceReq req);
+
+    /**
+     * 根据负载均衡算法获取一个健康的实例节点
+     *
+     * @param serviceName
+     * @return
+     */
+    Instance selectOneHealthyInstance(String serviceName);
 }
