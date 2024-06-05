@@ -47,14 +47,6 @@ dubbo:
     name: dubbo
     port: -1 # 为了随机分配端口
 
-
-# Curator 配置
-curator:
-
-
-
-
-
 appConfig:
   appId: 10000
   privateKey: 123456 # 接口密钥

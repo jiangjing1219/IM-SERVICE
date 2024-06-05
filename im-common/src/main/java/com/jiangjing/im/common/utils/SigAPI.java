@@ -178,7 +178,7 @@ public class SigAPI {
             sigDoc.put("TLS.userbuf", base64UserBuf);
         }
         String sig = hmacsha256(userid, currTime, expire, base64UserBuf, key);
-        if (sig.length() == 0) {
+        if (sig.isEmpty()) {
             return "";
         }
         sigDoc.put("TLS.sig", sig);

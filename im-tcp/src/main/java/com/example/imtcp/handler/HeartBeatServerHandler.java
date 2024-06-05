@@ -64,12 +64,16 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
         try {
             AttributeKey<Long> readTimeCountKey = AttributeKey.valueOf(Constants.READ_TIME_COUNT);
             Long idleCount = ctx.channel().attr(readTimeCountKey).get();
-            // 接收到心跳信息的是否会重置为 0 ，所以先自加
-            ++idleCount;
-            if (idleCount > imConfigInfo.getMaxReadTimeoutCount()) {
-                sessionSocketHolder.offlineUserSession((NioSocketChannel) ctx.channel());
+            if (idleCount == null) {
+                ctx.channel().attr(readTimeCountKey).set(1L);
             } else {
-                ctx.channel().attr(readTimeCountKey).set(idleCount);
+                // 接收到心跳信息的是否会重置为 0 ，所以先自加
+                ++idleCount;
+                if (idleCount > imConfigInfo.getMaxReadTimeoutCount()) {
+                    sessionSocketHolder.offlineUserSession((NioSocketChannel) ctx.channel());
+                } else {
+                    ctx.channel().attr(readTimeCountKey).set(idleCount);
+                }
             }
         } catch (Exception e) {
             // 日志记录或其他异常处理逻辑
