@@ -1,6 +1,7 @@
 package com.jiangjing.im.service.friendship.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.jiangjing.im.common.model.SyncReq;
 import com.jiangjing.im.service.friendship.dao.ImFriendShipEntity;
 import com.jiangjing.im.service.friendship.model.req.CheckFriendShipReq;
 import com.jiangjing.im.service.friendship.model.resp.CheckFriendShipResp;
@@ -109,11 +110,11 @@ public interface ImFriendShipMapper extends BaseMapper<ImFriendShipEntity> {
      * 获取当前用户好友关系链最大的 seq
      *
      * @param appId
-     * @param operate
+     * @param userId
      * @return
      */
     @Select(" select max(friend_sequence) from im_friendship where app_id = #{appId} AND from_id = #{userId} ")
-    Long getFriendShipMaxSeq(Integer appId, String operate);
+    Long getFriendShipMaxSeq(Integer appId, String userId);
 
 
     /**
@@ -132,4 +133,11 @@ public interface ImFriendShipMapper extends BaseMapper<ImFriendShipEntity> {
             "WHERE a.app_id = #{appId} AND a.from_id = #{fromId}" +
             "</script>" )
     List<ImFriendShipEntity> getAllFriendShip(Integer appId, String fromId);
+
+    /**
+     * 同步好友关系
+     * @param req
+     * @return
+     */
+    List<ImFriendShipEntity> syncFriendshipList(SyncReq req);
 }

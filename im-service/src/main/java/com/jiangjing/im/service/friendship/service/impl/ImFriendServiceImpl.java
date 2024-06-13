@@ -487,8 +487,7 @@ public class ImFriendServiceImpl implements ImFriendService {
         QueryWrapper<ImFriendShipEntity> query = new QueryWrapper<>();
         query.eq("app_id", req.getAppId());
         query.eq("from_id", req.getFromId());
-        List<ImFriendShipEntity> list = imFriendShipMapper.selectList(query);
-        list = imFriendShipMapper.getAllFriendShip(req.getAppId(), req.getFromId());
+        List<ImFriendShipEntity> list =  imFriendShipMapper.getAllFriendShip(req.getAppId(), req.getFromId());
         return ResponseVO.successResponse(list);
     }
 
@@ -700,9 +699,9 @@ public class ImFriendServiceImpl implements ImFriendService {
         queryWrapper.eq("from_id", req.getOperate());
         queryWrapper.eq("app_id", req.getAppId());
         queryWrapper.gt("friend_sequence", req.getLastSequence());
-        queryWrapper.last("limit" + req.getMaxLimit());
+        queryWrapper.last("limit " + req.getMaxLimit());
         queryWrapper.orderByAsc("friend_sequence");
-        List<ImFriendShipEntity> friendShipEntityList = imFriendShipMapper.selectList(queryWrapper);
+        List<ImFriendShipEntity> friendShipEntityList = imFriendShipMapper.syncFriendshipList(req);
         // 组装返回值
         SyncResp<ImFriendShipEntity> resp = new SyncResp<>();
         if (!friendShipEntityList.isEmpty()) {

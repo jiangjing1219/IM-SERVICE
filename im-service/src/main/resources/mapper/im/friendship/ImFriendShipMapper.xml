@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jiangjing.im.service.friendship.dao.mapper.ImFriendShipMapper">
+
+    <select id="syncFriendshipList" resultType="com.jiangjing.im.service.friendship.dao.ImFriendShipEntity">
+        SELECT
+            a.app_id,
+            a.from_id,
+            a.to_id,
+            a.remark,
+            a.STATUS,
+            a.black,
+            a.create_time,
+            a.friend_sequence,
+            a.black_sequence,
+            a.add_source,
+            a.extra,
+            b.nick_name,
+            b.self_signature
+        FROM
+            im_friendship a
+                LEFT JOIN
+            im_user_data b
+            on a.to_id = b.user_id
+        WHERE
+            (
+                a.from_id = #{operate}
+                    AND a.app_id = #{appId}
+                    AND a.friend_sequence > #{lastSequence} )
+        ORDER BY
+            a.friend_sequence ASC
+            LIMIT #{maxLimit}
+    </select>
+
+</mapper>

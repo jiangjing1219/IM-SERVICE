@@ -2,7 +2,9 @@ package com.jiangjing.im.service.user.service;
 
 
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.jiangjing.im.common.ResponseVO;
+import com.jiangjing.im.service.user.dao.ImUserDataEntity;
 import com.jiangjing.im.service.user.model.req.*;
 
 /**
@@ -76,4 +78,13 @@ public interface ImUserService {
      * @return
      */
     Instance selectOneHealthyInstance(String serviceName);
+
+    /**
+     * 用户的模糊分页查询
+     *
+     * @param queryUserPageReq
+     * @return
+     */
+    ResponseVO<IPage<ImUserDataEntity>> queryUserPage(QueryUserPageReq queryUserPageReq);
+
 }

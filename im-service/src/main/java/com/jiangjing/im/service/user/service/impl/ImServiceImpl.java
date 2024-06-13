@@ -7,6 +7,8 @@ import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.jiangjing.im.common.ResponseVO;
 import com.jiangjing.im.common.config.AppConfig;
 import com.jiangjing.im.common.constant.Constants;
@@ -17,6 +19,7 @@ import com.jiangjing.im.common.exception.ApplicationException;
 import com.jiangjing.im.service.group.service.ImGroupService;
 import com.jiangjing.im.service.user.dao.ImUserDataEntity;
 import com.jiangjing.im.service.user.dao.mapper.ImUserDataMapper;
+import com.jiangjing.im.service.user.model.page.MyPage;
 import com.jiangjing.im.service.user.model.req.*;
 import com.jiangjing.im.service.user.model.resp.GetUserInfoResp;
 import com.jiangjing.im.service.user.model.resp.ImportUserResp;
@@ -43,7 +46,7 @@ import java.util.Map;
  */
 @Service
 @Transactional
-public class ImServiceImpl implements ImUserService {
+public class ImServiceImpl extends ServiceImpl<ImUserDataMapper, ImUserDataEntity> implements ImUserService {
 
     @Autowired
     ImUserDataMapper imUserDataMapper;
@@ -268,5 +271,14 @@ public class ImServiceImpl implements ImUserService {
         } catch (Exception e) {
             throw new ApplicationException(UserErrorCode.SERVER_NOT_AVAILABLE);
         }
+    }
+
+    @Override
+    public ResponseVO<IPage<ImUserDataEntity>> queryUserPage(QueryUserPageReq queryUserPageReq) {
+        MyPage<ImUserDataEntity> imUserDataEntityMyPage = new MyPage<>(queryUserPageReq.getCurrentPage(), queryUserPageReq.getPageSize(), queryUserPageReq.getNickName(), queryUserPageReq.getOperate());
+        MyPage<ImUserDataEntity> result = imUserDataMapper.queryUserPage(imUserDataEntityMyPage);
+        ResponseVO<IPage<ImUserDataEntity>> iPageResponseVO = new ResponseVO<>();
+        iPageResponseVO.success().setData(result);
+        return iPageResponseVO;
     }
 }

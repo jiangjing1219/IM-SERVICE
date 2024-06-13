@@ -1,9 +1,12 @@
 package com.jiangjing.im.service.user.controller;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.jiangjing.im.common.ResponseVO;
+import com.jiangjing.im.service.user.dao.ImUserDataEntity;
 import com.jiangjing.im.service.user.model.req.GetUserInfoReq;
 import com.jiangjing.im.service.user.model.req.ModifyUserInfoReq;
+import com.jiangjing.im.service.user.model.req.QueryUserPageReq;
 import com.jiangjing.im.service.user.model.req.UserId;
 import com.jiangjing.im.service.user.service.ImUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 获取用户信息
+ *
  * @author Admin
  */
 @RestController
@@ -26,39 +30,46 @@ public class ImUserDataController {
 
     /**
      * 批量获取用户
+     *
      * @param req
      * @param appId
      * @return
      */
     @RequestMapping("/getUserInfo")
-    public ResponseVO getUserInfo(@RequestBody GetUserInfoReq req, Integer appId){//@Validated
+    public ResponseVO getUserInfo(@RequestBody GetUserInfoReq req, Integer appId) {//@Validated
         req.setAppId(appId);
         return imUserService.getUserInfo(req);
     }
 
     /**
      * 获取单个用户
+     *
      * @param req
      * @param appId
      * @return
      */
     @RequestMapping("/getSingleUserInfo")
-    public ResponseVO getSingleUserInfo(@RequestBody @Validated UserId req, Integer appId){
+    public ResponseVO getSingleUserInfo(@RequestBody @Validated UserId req, Integer appId) {
         req.setAppId(appId);
-        return imUserService.getSingleUserInfo(req.getUserId(),req.getAppId());
+        return imUserService.getSingleUserInfo(req.getUserId(), req.getAppId());
     }
 
     /**
      * 修改单个用户信息
+     *
      * @param req
      * @param appId
      * @return
      */
     @RequestMapping("/modifyUserInfo")
-    public ResponseVO modifyUserInfo(@RequestBody @Validated ModifyUserInfoReq req, Integer appId){
+    public ResponseVO modifyUserInfo(@RequestBody @Validated ModifyUserInfoReq req, Integer appId) {
         req.setAppId(appId);
         return imUserService.modifyUserInfo(req);
     }
 
+    @RequestMapping("/queryImUserPage")
+    public ResponseVO<IPage<ImUserDataEntity>> queryUserPage(@RequestBody @Validated QueryUserPageReq queryUserPageReq) {
+        return imUserService.queryUserPage(queryUserPageReq);
+    }
 
 }

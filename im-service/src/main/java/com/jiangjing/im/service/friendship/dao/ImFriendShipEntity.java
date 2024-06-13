@@ -46,4 +46,7 @@ public class ImFriendShipEntity {
     @TableField(exist = false)
     private String nickName;
 
+    @TableField(exist = false)
+    private String selfSignature;
+
 }

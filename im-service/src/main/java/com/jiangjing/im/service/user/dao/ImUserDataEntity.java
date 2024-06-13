@@ -53,6 +53,9 @@ public class ImUserDataEntity {
 
     private Integer appId;
 
+    /**
+     * 删除标识
+     */
     private Integer delFlag;
 
     private String extra;

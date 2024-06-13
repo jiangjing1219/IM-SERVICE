@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jiangjing.im.service.user.dao.mapper.ImUserDataMapper">
+
+
+    <select id="queryUserPage" resultType="com.jiangjing.im.service.user.dao.ImUserDataEntity">
+
+        select
+            app_id,
+            user_id,
+            nick_name,
+            photo,
+            user_sex,
+            birth_day,
+            self_signature,
+            friend_allow_type,
+            disable_add_friend,
+            forbidden_flag,
+            extra,
+            location,
+            password,
+            user_type,
+            silent_flag
+        from im_user_data
+        <where>
+            <if test="userId != null and userId != ''">
+                and user_id != #{userId}
+            </if>
+            <if test="nickName != null and nickName != ''">
+                and nick_name like concat('%',#{nickName},'%')
+            </if>
+        </where>
+
+
+    </select>
+</mapper>
