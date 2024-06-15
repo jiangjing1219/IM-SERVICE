@@ -69,8 +69,8 @@ public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestServic
         ImFriendShipRequestEntity request = imFriendShipRequestMapper.selectOne(queryWrapper);
         // 好后申请序列
         long redisSeqSeq = redisSeq.getSeq(appId + ":" + Constants.SeqConstants.FRIENDSHIP_REQUEST_SEQ);
-        // 2、不存在，则需新增一条好友申请
-        if (request == null) {
+        // 2、不存在，则需新增一条好友申请，或者是直接已经【已拒绝】
+        if (request == null || request.getApproveStatus() == 2) {
             request = new ImFriendShipRequestEntity();
             request.setAddSource(dto.getAddSource());
             request.setAddWording(dto.getAddWording());
@@ -154,8 +154,8 @@ public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestServic
         ApproverFriendRequestPack approverFriendRequestPack = new ApproverFriendRequestPack();
         approverFriendRequestPack.setId(req.getId());
         approverFriendRequestPack.setStatus(req.getStatus());
-        messageProducer.sendToUserByAll(imFriendShipRequestEntity.getFromId(), req.getAppId(), FriendshipEventCommand.FRIEND_REQUEST_APPROVER, approverFriendRequestPack);
-
+        // fromId 是申请的发送方，但是申请记录是该 toId 接受方看到，所以也是 toId 接收方做的审核，需要多端同步的也是接收方
+        messageProducer.sendToUserByAll(imFriendShipRequestEntity.getToId(), req.getAppId(), FriendshipEventCommand.FRIEND_REQUEST_APPROVER, approverFriendRequestPack);
         return ResponseVO.successResponse();
     }
 

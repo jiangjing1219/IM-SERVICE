@@ -330,7 +330,7 @@ public class ImFriendServiceImpl implements ImFriendService {
             callbackDto.setToItem(toItem);
             callbackService.callback(appId, Constants.CallbackCommand.ADD_FRIEND_AFTER, JSONObject.toJSONString(callbackDto));
         }
-        return ResponseVO.successResponse();
+        return ResponseVO.successResponse().setMessage("添加好友成功！");
     }
 
 
@@ -500,11 +500,7 @@ public class ImFriendServiceImpl implements ImFriendService {
      */
     @Override
     public ResponseVO getRelation(GetRelationReq req) {
-        QueryWrapper<ImFriendShipEntity> query = new QueryWrapper<>();
-        query.eq("app_id", req.getAppId());
-        query.eq("from_id", req.getFromId());
-        query.eq("to_id", req.getToId());
-        ImFriendShipEntity imFriendShipEntity = imFriendShipMapper.selectOne(query);
+        ImFriendShipEntity imFriendShipEntity = imFriendShipMapper.getRelationById(req);
         if (imFriendShipEntity == null) {
             return ResponseVO.errorResponse(FriendShipErrorCode.REPEATSHIP_IS_NOT_EXIST);
         }

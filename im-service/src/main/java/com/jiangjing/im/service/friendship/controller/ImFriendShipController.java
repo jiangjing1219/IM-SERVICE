@@ -113,7 +113,7 @@ public class ImFriendShipController {
     }
 
     /**
-     * 获取执行好友的好友信息
+     * 获取指定好友的好友信息
      *
      * @param req
      * @param appId

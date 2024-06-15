@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.jiangjing.im.common.model.SyncReq;
 import com.jiangjing.im.service.friendship.dao.ImFriendShipEntity;
 import com.jiangjing.im.service.friendship.model.req.CheckFriendShipReq;
+import com.jiangjing.im.service.friendship.model.req.GetRelationReq;
 import com.jiangjing.im.service.friendship.model.resp.CheckFriendShipResp;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -140,4 +141,12 @@ public interface ImFriendShipMapper extends BaseMapper<ImFriendShipEntity> {
      * @return
      */
     List<ImFriendShipEntity> syncFriendshipList(SyncReq req);
+
+    /**
+     * 获取指定好友的信息
+     *
+     * @param req
+     * @return
+     */
+    ImFriendShipEntity getRelationById(GetRelationReq req);
 }

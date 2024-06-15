@@ -32,4 +32,17 @@
             LIMIT #{maxLimit}
     </select>
 
+    <select id="getRelationById" resultType="com.jiangjing.im.service.friendship.dao.ImFriendShipEntity">
+        select a.*,
+               b.nick_name,
+               b.self_signature
+        from im_friendship a
+                 LEFT JOIN
+             im_user_data b
+             on
+                 a.to_id = b.user_id
+        where a.app_id = #{appId}
+          and a.from_id = #{fromId}
+          and a.to_id = #{toId}
+    </select>
 </mapper>
