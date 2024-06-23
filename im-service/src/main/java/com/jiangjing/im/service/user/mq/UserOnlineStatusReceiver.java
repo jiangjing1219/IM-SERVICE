@@ -56,7 +56,7 @@ public class UserOnlineStatusReceiver {
         try {
             JSONObject jsonObject = JSON.parseObject(msg);
             Integer command = jsonObject.getInteger("command");
-            // 在线状态变更的消息
+            // 在线状态变更的消息 新的客户端登录或者自定修改了自己的在线状态，需要通知自身其他登录端，和通知在线还有和自定义订阅端
             if (command == UserEventCommand.USER_ONLINE_STATUS_CHANGE.getCommand()) {
                 UserStatusChangeNotifyContent content = JSON.parseObject(msg, new TypeReference<UserStatusChangeNotifyContent>() {
                 }.getType());

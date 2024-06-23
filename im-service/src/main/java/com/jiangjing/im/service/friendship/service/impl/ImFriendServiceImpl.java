@@ -212,6 +212,7 @@ public class ImFriendServiceImpl implements ImFriendService {
             fromItem.setFromId(fromId);
             fromItem.setStatus(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode());
             fromItem.setCreateTime(System.currentTimeMillis());
+            fromItem.setBlack(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode());
             //添加好友序列
             fromItem.setFriendSequence(friendshipSeq);
             // 插入一条好友关系记录

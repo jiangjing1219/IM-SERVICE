@@ -142,7 +142,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             // 投递给 mq ，service 层处理
             messageProducer.sendMessage(userStatusChangeNotifyPack, UserEventCommand.USER_ONLINE_STATUS_CHANGE.getCommand(), message.getMessageHeader());
 
-            // 登录成功，回复给客户局端
+            // 登录成功，回复给客户局端用户登录成功
             MessagePack<LoginAckPack> loginSuccessAckPack = new MessagePack<>();
             LoginAckPack pack = new LoginAckPack();
             pack.setUserId(loginPack.getUserId());
@@ -153,14 +153,13 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             loginSuccessAckPack.setClientType(message.getMessageHeader().getClientType());
             channelHandlerContext.channel().writeAndFlush(loginSuccessAckPack);
 
-        } else if (command == SystemCommand.LOGOUT.getCommand()) {
+            } else if (command == SystemCommand.LOGOUT.getCommand()) {
             //删除session —— 离线状态变更
             sessionSocketHolder.removeUserSession((NioSocketChannel) channelHandlerContext.channel());
             // 心跳事件
         } else if (command == SystemCommand.PING.getCommand()) {
             // 写入当前心跳的时间
-            channelHandlerContext.channel()
-                    .attr(AttributeKey.valueOf(Constants.READ_TIME)).set(System.currentTimeMillis());
+            channelHandlerContext.channel().attr(AttributeKey.valueOf(Constants.READ_TIME)).set(System.currentTimeMillis());
             // 重置心跳的计算次数 —— 连续超时才会强制退出
             channelHandlerContext.channel().attr(AttributeKey.valueOf(Constants.READ_TIME_COUNT)).set(0L);
             // 如果发送的是单聊消息或者是群聊消息，那么直接在这里校验发送方和接收方的合法性，不合法直接返回 ack ，不需要投递到 mq
@@ -221,8 +220,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
         if (StringUtils.isNotBlank(strSession)) {
             UserSession userSession = JSONObject.parseObject(strSession, UserSession.class);
             userSession.setConnectState(ImConnectStatusEnum.OFFLINE_STATUS.getCode());
-            redisTemplate.opsForHash().put(appId +
-                    Constants.RedisConstants.USER_SESSION_CONSTANTS + userId, clientType + ":" + imei, JSONObject.toJSONString(userSession));
+            redisTemplate.opsForHash().put(appId + Constants.RedisConstants.USER_SESSION_CONSTANTS + userId, clientType + ":" + imei, JSONObject.toJSONString(userSession));
         }
         ctx.close();
     }

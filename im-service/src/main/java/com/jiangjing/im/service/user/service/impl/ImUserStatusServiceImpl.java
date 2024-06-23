@@ -1,6 +1,7 @@
 package com.jiangjing.im.service.user.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.jiangjing.im.common.constant.Constants;
 import com.jiangjing.im.common.enums.UserErrorCode;
 import com.jiangjing.im.common.enums.command.UserEventCommand;
@@ -51,7 +52,7 @@ public class ImUserStatusServiceImpl implements ImUserStatusService {
     public void processUserOnlineStatusNotify(UserStatusChangeNotifyContent content) {
         // 1、当前用户其他在线客户端
         List<UserSession> sessions = userSessionUtils.getUserSession(content.getAppId(), content.getUserId());
-        // 2、通知其他客户端
+        // 2、通知其他客户端 - 在线状态对端同步
         UserStatusChangeNotifyPack notifyPack = new UserStatusChangeNotifyPack();
         BeanUtils.copyProperties(content, notifyPack);
         notifyPack.setClient(sessions);
@@ -160,6 +161,7 @@ public class ImUserStatusServiceImpl implements ImUserStatusService {
             // 1、获取 session 在线状态信息
             List<UserSession> sessions = userSessionUtils.getUserSession(appId, userId);
             userOnlineStatusResp.setSession(sessions);
+            userOnlineStatusResp.setOnlineStatus(CollectionUtils.isEmpty(sessions) ? 0 : 1);
             // 2、获取自定义状态信息
             String cacheKey = appId + Constants.RedisConstants.USER_CUSTOMER_STATUS + userId;
             String customStatusStr = (String) redisTemplate.opsForValue().get(cacheKey);

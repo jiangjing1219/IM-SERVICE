@@ -21,6 +21,16 @@ public class UserStatusChangeNotifyPack {
 
     private Integer status;
 
+    /**
+     * 设备端类型
+     */
+    private Integer clientType;
+
+    /**
+     * 设备标识
+     */
+    private String imei;
+
     private List<UserSession> client;
 
 }

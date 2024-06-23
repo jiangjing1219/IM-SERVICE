@@ -125,7 +125,7 @@ public interface ImFriendShipMapper extends BaseMapper<ImFriendShipEntity> {
      * @param userId
      * @return
      */
-    @Select(" select to_id from im_friendship where from_id = #{userId} AND app_id = #{appId} and status = 1 and black = 1 ")
+    @Select("select to_id from im_friendship where from_id = #{userId} AND app_id = #{appId} and status = 1 and black = 1 ")
     List<String> getAllFriendId(Integer appId, String userId);
 
     @Select("<script>" +

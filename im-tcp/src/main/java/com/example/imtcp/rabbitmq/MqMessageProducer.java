@@ -64,7 +64,7 @@ public class MqMessageProducer {
 
     public void sendMessage(Object message, Integer command, MessageHeader messageHeader) {
         // 默认是单聊消息
-        // 判断手否是群组服务的消息，命令义 2 开头的都是群组服务的消息,1 开头的是单聊消息
+        // 判断手否是群组服务的消息，命令义 2 开头的都是群组服务的消息,1 开头的是单聊消息, 4 开头的用户用户消息
         String commandSub = command.toString().substring(0, 1);
         CommandType commandType = CommandType.getCommandType(commandSub);
         String exchangeName = "";

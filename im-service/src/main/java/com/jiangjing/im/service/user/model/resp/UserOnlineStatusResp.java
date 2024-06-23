@@ -19,4 +19,5 @@ public class UserOnlineStatusResp {
 
     private Integer customStatus;
 
+    private Integer onlineStatus;
 }
