@@ -118,7 +118,8 @@ public class GroupMessageProducer {
             for (String memberId : memberIds) {
                 // 如果当前用户操作发起端 不是 webapi ，那么只需要通知其他的登录端进行书话剧同步即可
                 if (clientInfo.getClientType() != null && clientInfo.getClientType() !=
-                        ClientType.WEBAPI.getCode() && memberId.equals(userId)) {
+                        ClientType.WEBAPI.getCode()  && clientInfo.getClientType() !=
+                        ClientType.WEB.getCode() && memberId.equals(userId)) {
                     messageProducer.sendToUserExceptClient(memberId, command,
                             message, clientInfo);
                 } else {

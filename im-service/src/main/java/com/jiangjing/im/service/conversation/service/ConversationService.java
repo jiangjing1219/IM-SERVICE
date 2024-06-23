@@ -46,7 +46,7 @@ public class ConversationService {
     WriteUserSeq writeUserSeq;
 
     /**
-     * 生成一个会化id：conversationType_fromId_toId 的形式
+     * 生成一个会话id：conversationType_fromId_toId 的形式
      *
      * @param type
      * @param fromId

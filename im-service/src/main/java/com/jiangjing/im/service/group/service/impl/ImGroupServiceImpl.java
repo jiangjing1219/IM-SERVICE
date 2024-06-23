@@ -533,13 +533,7 @@ public class ImGroupServiceImpl implements ImGroupService {
         SyncResp<ImGroupEntity> resp = new SyncResp<>();
         if (!memberJoinedGroupIds.isEmpty()) {
             // 3、查询大于 sequence 的群组信息
-            QueryWrapper<ImGroupEntity> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("app_id", req.getAppId());
-            queryWrapper.in("group_id", memberJoinedGroupIds);
-            queryWrapper.gt("sequence", req.getLastSequence());
-            queryWrapper.last(" limit " + req.getMaxLimit());
-            queryWrapper.orderByAsc("sequence");
-            List<ImGroupEntity> imGroupEntities = imGroupDataMapper.selectList(queryWrapper);
+            List<ImGroupEntity> imGroupEntities = imGroupDataMapper.selectGroupWithMembers(req, memberJoinedGroupIds);
             if (!imGroupEntities.isEmpty()) {
                 // 4、获取数据库中最大的群组 sequence
                 ImGroupEntity maxGroupEntity = imGroupEntities.get(imGroupEntities.size() - 1);

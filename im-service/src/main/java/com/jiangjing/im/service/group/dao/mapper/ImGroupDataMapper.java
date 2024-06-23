@@ -1,6 +1,7 @@
 package com.jiangjing.im.service.group.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.jiangjing.im.common.model.SyncReq;
 import com.jiangjing.im.service.group.dao.ImGroupEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -29,4 +30,12 @@ public interface ImGroupDataMapper extends BaseMapper<ImGroupEntity> {
             "</foreach>" +
             " </script> ")
     Long getGroupMaxSeq(List<String> groupIds, Integer appId);
+
+    /**
+     * 查询加入的群聊信息
+     * @param req
+     * @param memberJoinedGroupIds
+     * @return
+     */
+    List<ImGroupEntity> selectGroupWithMembers(SyncReq req, List<String> memberJoinedGroupIds);
 }

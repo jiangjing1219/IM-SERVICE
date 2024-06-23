@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jiangjing.im.service.group.dao.mapper.ImGroupDataMapper">
+
+    <resultMap id="GroupWithMembersResultMap" type="com.jiangjing.im.service.group.dao.ImGroupEntity">
+        <id property="groupId" column="group_id"/>
+        <!-- 其他ImGroupEntity的属性映射 -->
+        <result property="appId" column="app_id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="groupType" column="group_type"/>
+        <result property="groupName" column="group_name"/>
+        <result property="mute" column="mute"/>
+        <result property="applyJoinType" column="apply_join_type"/>
+        <result property="introduction" column="introduction"/>
+        <result property="notification" column="notification"/>
+        <result property="photo" column="photo"/>
+        <result property="maxMemberCount" column="max_member_count"/>
+        <result property="status" column="status"/>
+        <result property="sequence" column="sequence"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="extra" column="extra"/>
+        <collection property="memberList" ofType="com.jiangjing.im.service.group.model.req.GroupMemberDto">
+            <id property="memberId" column="group_member_id"/>
+            <id property="alias" column="alias"/>
+            <id property="role" column="role"/>
+            <id property="speakFlag" column="speak_flag"/>
+            <id property="speakDate" column="speak_date"/>
+            <id property="joinType" column="join_type"/>
+            <id property="joinTime" column="join_time"/>
+            <id property="appId" column="app_id"/>
+            <id property="groupId" column="group_id"/>
+
+            <!-- 其他ImGroupMemberEntity的属性映射 -->
+        </collection>
+    </resultMap>
+
+    <select id="selectGroupWithMembers" resultMap="GroupWithMembersResultMap">
+        SELECT g.*,
+        m.group_member_id,
+        m.role,
+        m.speak_flag,
+        m.speak_date,
+        m.alias,
+        m.join_time,
+        m.join_type
+        FROM im_group g
+        LEFT JOIN im_group_member m ON g.group_id = m.group_id
+        WHERE g.app_id = #{req.appId}
+        AND g.group_id IN
+        <foreach item="itemId" index="index" collection="memberJoinedGroupIds" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+        AND g.sequence > #{req.lastSequence}
+        ORDER BY g.sequence ASC
+        LIMIT #{req.maxLimit}
+    </select>
+
+</mapper>
