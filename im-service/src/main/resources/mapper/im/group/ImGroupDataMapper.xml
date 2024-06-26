@@ -21,7 +21,7 @@
         <result property="updateTime" column="update_time"/>
         <result property="extra" column="extra"/>
         <collection property="memberList" ofType="com.jiangjing.im.service.group.model.req.GroupMemberDto">
-            <id property="memberId" column="group_member_id"/>
+            <id property="memberId" column="member_id"/>
             <id property="alias" column="alias"/>
             <id property="role" column="role"/>
             <id property="speakFlag" column="speak_flag"/>
@@ -37,7 +37,7 @@
 
     <select id="selectGroupWithMembers" resultMap="GroupWithMembersResultMap">
         SELECT g.*,
-        m.group_member_id,
+        m.member_id,
         m.role,
         m.speak_flag,
         m.speak_date,
