@@ -146,7 +146,7 @@ public class MessageSyncService {
         String queueKey = req.getAppId() + Constants.RedisConstants.OFFLINE_MESSAGE + req.getOperate();
         Long maxSeq = 0L;
         // 2、获取离线消息的最大 sequence
-        Set<ZSetOperations.TypedTuple<String>> set = redisTemplate.opsForZSet().rangeByScoreWithScores(queueKey, 0, 0);
+        Set<ZSetOperations.TypedTuple<String>> set = redisTemplate.opsForZSet().reverseRangeWithScores(queueKey, 0, 0);
         // 3、获取具体的值
         if (!CollectionUtils.isEmpty(set)) {
             ZSetOperations.TypedTuple<String> tuple = set.iterator().next();
