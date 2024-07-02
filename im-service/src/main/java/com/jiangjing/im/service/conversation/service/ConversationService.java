@@ -95,7 +95,7 @@ public class ConversationService {
             imConversationSetEntity.setReadedSequence(messageContent.getMessageSequence());
             imConversationSetMapper.readMark(imConversationSetEntity);
         }
-        // 更新缓存
+        // 更新缓存（涉及增量更新的时候使用的）
         writeUserSeq.writeUserSeq(messageContent.getAppId(), messageContent.getFromId(), Constants.SeqConstants.CONVERSATION_SEQ, seq);
     }
 

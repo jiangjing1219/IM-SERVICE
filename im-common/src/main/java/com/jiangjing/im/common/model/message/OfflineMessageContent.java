@@ -17,6 +17,8 @@ public class OfflineMessageContent {
      */
     private Long messageKey;
 
+    private String messageId;
+
     /**
      * messageBody
      */

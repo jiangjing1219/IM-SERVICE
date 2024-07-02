@@ -167,7 +167,7 @@ public class Constants {
         /**
          * 会话的序列 appid：conversationSeq   一个app一个序列
          */
-        public static final String CONVERSATION_SEQ = ":conversationSeq";
+        public static final String CONVERSATION_SEQ = "conversationSeq";
 
     }
 

@@ -193,7 +193,7 @@ public class P2PMessageService {
     private void ack(MessageContent messageContent, ResponseVO responseVO) {
         logger.info("msg ack,msgId={},checkResult{}", messageContent.getMessageId(), responseVO.getCode());
         ChatMessageAck chatMessageAck = new
-                ChatMessageAck(messageContent.getMessageId(), messageContent.getMessageSequence(), messageContent.getMessageKey());
+                ChatMessageAck(messageContent.getMessageId(), messageContent.getMessageSequence(), messageContent.getMessageKey(), messageContent.getToId());
         // 在给发送端回复ack时，携带消息本身的id信息，标识是那条消息的ack，前端方可操作
         responseVO.setData(chatMessageAck);
         // 回复一个 ack 给指定的端
@@ -226,7 +226,6 @@ public class P2PMessageService {
      * @param clientInfo
      */
     private void syncToSender(MessageContent messageContent, ClientInfo clientInfo) {
-        System.out.println("MSG_P2P_SYNC 发送端消息同步: "+ messageContent);
         messageProducer.sendToUserExceptClient(messageContent.getFromId(), MessageCommand.MSG_P2P_SYNC, messageContent, clientInfo);
     }
 

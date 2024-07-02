@@ -45,7 +45,7 @@ public class P2pChatOperateReceiver {
     /**
      * 默认的交换机类型是 direct ，根据路由key精确匹配。
      * TCP 发送的给 MessageService，所有的 MessageService 服务平分队列中的消息
-     *
+     * <p>
      * 业务场景：如果第三方的 app 需要在发送消息之前或者发送消息之后需要做自身的业务判断来限制当前用户发消息的合法性，就需要在发消息之前做业务回调
      *
      * @param message
@@ -53,7 +53,7 @@ public class P2pChatOperateReceiver {
      * @param channel
      */
     @RabbitListener(
-            bindings = @QueueBinding(value = @Queue(value = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE, durable = "true"), exchange = @Exchange(value = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE), key = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE), concurrency = "1"
+            bindings = @QueueBinding(value = @Queue(value = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE, durable = "true"), exchange = @Exchange(value = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE), key = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE), concurrency = "10"
     )
     public void onChatMessage(@Payload Message message, @Headers Map<String, Object> headers, Channel channel) throws IOException {
         String msg = new String(message.getBody(), StandardCharsets.UTF_8);
@@ -76,7 +76,7 @@ public class P2pChatOperateReceiver {
                 // 接收方读取到消息之后，回复 MSG_READED
                 MessageReadedContent messageContent = messageJson.toJavaObject(MessageReadedContent.class);
                 messageSyncService.readMark(messageContent);
-            }else if (command == MessageCommand.MSG_RECALL.getCommand()) {
+            } else if (command == MessageCommand.MSG_RECALL.getCommand()) {
                 // 接收到单聊消息的撤回指令
                 RecallMessageContent messageContent = messageJson.toJavaObject(RecallMessageContent.class);
                 messageSyncService.recallMessage(messageContent);
@@ -91,10 +91,7 @@ public class P2pChatOperateReceiver {
              * param2:是否批量确认此id之前的所有消息
              * param3: true 消息重新发送，false 消息丢弃
              */
-            //channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
         }
-
     }
-
 }

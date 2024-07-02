@@ -1,5 +1,9 @@
 package com.jiangjing.im.common.enums.command;
 
+/**
+ * @author Admin
+ */
+
 public enum MessageCommand implements Command {
 
     // 单聊消息 1103
