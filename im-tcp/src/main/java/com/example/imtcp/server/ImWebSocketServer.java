@@ -22,6 +22,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -43,10 +44,10 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
     private ImConfigInfo imConfigInfo;
 
     @Autowired
-    NettyServerHandler nettyServerHandler;
+    ObjectProvider<NettyServerHandler> nettyServerHandlerProvider;
 
     @Autowired
-    HeartBeatServerHandler heartBeatServerHandler;
+    ObjectProvider<HeartBeatServerHandler> heartBeatServerHandlerObjectProvider;
 
     @Autowired
     NacosDiscoveryProperties nacosDiscoveryProperties;
@@ -98,8 +99,8 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
                             pipeline.addLast(new WebSocketMessageDecoder());
                             pipeline.addLast(new WebSocketMessageEncoder());
                             socketChannel.pipeline().addLast(new IdleStateHandler(20, 0, 0));
-                            socketChannel.pipeline().addLast(heartBeatServerHandler);
-                            pipeline.addLast(nettyServerHandler);
+                            socketChannel.pipeline().addLast(heartBeatServerHandlerObjectProvider.getObject());
+                            pipeline.addLast(nettyServerHandlerProvider.getObject());
                         }
                     });
             serverChannelFuture = serverBootstrap.bind(imConfigInfo.getWebSocketPort()).sync();

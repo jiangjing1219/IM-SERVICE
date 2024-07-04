@@ -51,7 +51,7 @@ public class GroupChatOperateReceive {
      * @throws IOException
      */
     @RabbitListener(
-            bindings = @QueueBinding(value = @Queue(value = Constants.RabbitConstants.IM_2_GROUP_SERVICE, durable = "true"), exchange = @Exchange(value = Constants.RabbitConstants.IM_2_GROUP_SERVICE), key = Constants.RabbitConstants.IM_2_GROUP_SERVICE), concurrency = "1"
+            bindings = @QueueBinding(value = @Queue(value = Constants.RabbitConstants.IM_2_GROUP_SERVICE, durable = "true"), exchange = @Exchange(value = Constants.RabbitConstants.IM_2_GROUP_SERVICE), key = Constants.RabbitConstants.IM_2_GROUP_SERVICE), concurrency = "10"
     )
     public void onChatMessage(@Payload Message message, @Headers Map<String, Object> headers, Channel channel) throws IOException {
         String msg = new String(message.getBody(), StandardCharsets.UTF_8);

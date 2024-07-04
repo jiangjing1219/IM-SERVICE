@@ -23,7 +23,6 @@ import com.jiangjing.pack.user.LoginAckPack;
 import com.jiangjing.pack.user.UserStatusChangeNotifyPack;
 import com.jiangjing.proto.Message;
 import com.jiangjing.proto.MessagePack;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -33,6 +32,7 @@ import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +45,7 @@ import java.net.InetAddress;
  * @date 2023/6/23 19:35
  */
 @Component
-@ChannelHandler.Sharable
+@Scope("prototype")
 public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
 
     @Autowired

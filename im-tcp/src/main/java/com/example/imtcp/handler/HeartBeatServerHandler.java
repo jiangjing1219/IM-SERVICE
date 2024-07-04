@@ -3,13 +3,13 @@ package com.example.imtcp.handler;
 import com.example.imtcp.config.ImConfigInfo;
 import com.example.imtcp.utils.SessionSocketHolder;
 import com.jiangjing.im.common.constant.Constants;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * @author Admin
  */
 @Component
-@ChannelHandler.Sharable
+@Scope("prototype")
 public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
 
     /**

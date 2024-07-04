@@ -21,6 +21,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -42,10 +43,10 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
     ImConfigInfo imConfigInfo;
 
     @Autowired
-    NettyServerHandler nettyServerHandler;
+    ObjectProvider<NettyServerHandler> nettyServerHandlerProvider;
 
     @Autowired
-    HeartBeatServerHandler heartBeatServerHandler;
+    ObjectProvider<HeartBeatServerHandler> heartBeatServerHandlerObjectProvider;
 
     @Autowired
     NacosDiscoveryProperties nacosDiscoveryProperties;
@@ -80,8 +81,8 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
                             socketChannel.pipeline().addLast(new MessageDecoder());
                             socketChannel.pipeline().addLast(new MessageEncoder());
                             socketChannel.pipeline().addLast(new IdleStateHandler(3000, 0, 0));
-                            socketChannel.pipeline().addLast(heartBeatServerHandler);
-                            socketChannel.pipeline().addLast(nettyServerHandler);
+                            socketChannel.pipeline().addLast(heartBeatServerHandlerObjectProvider.getObject());
+                            socketChannel.pipeline().addLast(nettyServerHandlerProvider.getObject());
                         }
                     });
             serverChannelFuture = serverBootstrap.bind(imConfigInfo.getTcpPort()).sync();
