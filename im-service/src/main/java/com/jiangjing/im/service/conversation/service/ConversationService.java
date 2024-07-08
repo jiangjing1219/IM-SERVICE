@@ -58,8 +58,9 @@ public class ConversationService {
     }
 
     /**
-     *
-     *
+     * 消息已读 - 更新的
+     * formId 是 该消息的接收方
+     * toId 是 该消息的发送方
      * @param messageContent
      */
     public void messageMarkRead(MessageReadedContent messageContent) {
@@ -70,7 +71,8 @@ public class ConversationService {
         }
         String fromId = messageContent.getToId();
         Integer conversationType = messageContent.getConversationType();
-        String conversationId = convertConversationId(conversationType, fromId, toId);
+        // 更新接收方的会话信息
+        String conversationId = convertConversationId(conversationType, toId, fromId);
         QueryWrapper<ImConversationSetEntity> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("conversation_id", conversationId);
         queryWrapper.eq("app_id", messageContent.getAppId());
