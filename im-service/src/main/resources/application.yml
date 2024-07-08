@@ -3,11 +3,11 @@ spring:
     active: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    password: root123
-    url: jdbc:mysql://116.198.228.185:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+    password: root
+    url: jdbc:mysql://127.0.0.1:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
     username: root
   rabbitmq:
-    host: 116.198.228.185
+    host: 127.0.0.1
     port: 5672
     username: root
     password: root
@@ -23,7 +23,7 @@ spring:
         retry:
           max-attempts: 5
   redis:
-    host: 116.198.228.185
+    host: 127.0.0.1
     port: 6379
   aop:
     proxy-target-class: true
