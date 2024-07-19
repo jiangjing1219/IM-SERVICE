@@ -72,7 +72,7 @@ public class ConversationService {
         String fromId = messageContent.getToId();
         Integer conversationType = messageContent.getConversationType();
         // 更新接收方的会话信息
-        String conversationId = convertConversationId(conversationType, toId, fromId);
+        String conversationId = convertConversationId(conversationType, fromId, toId);
         QueryWrapper<ImConversationSetEntity> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("conversation_id", conversationId);
         queryWrapper.eq("app_id", messageContent.getAppId());
