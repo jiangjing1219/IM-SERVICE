@@ -2,13 +2,14 @@ package com.example.imtcp.rabbitmq.process;
 
 /**
  * 获取消息接收处理类的相应实例
+ * @author Admin
  */
 public class ProcessFactory {
 
-    private static BaseProcess defaultProcess;
+    private static final BaseProcess DEFAULT_PROCESS;
 
     static {
-        defaultProcess = new BaseProcess() {
+        DEFAULT_PROCESS = new BaseProcess() {
             @Override
             public void processBefore() {
 
@@ -28,6 +29,6 @@ public class ProcessFactory {
      * @return
      */
     public static BaseProcess getMessageProcess(Integer command) {
-        return defaultProcess;
+        return DEFAULT_PROCESS;
     }
 }

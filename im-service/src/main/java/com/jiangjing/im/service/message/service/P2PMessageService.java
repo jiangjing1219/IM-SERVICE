@@ -1,6 +1,9 @@
 package com.jiangjing.im.service.message.service;
 
+import com.alibaba.dashscope.common.Message;
+import com.alibaba.dashscope.common.Role;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.jiangjing.im.common.ResponseVO;
 import com.jiangjing.im.common.config.AppConfig;
 import com.jiangjing.im.common.constant.Constants;
@@ -8,15 +11,13 @@ import com.jiangjing.im.common.enums.ConversationTypeEnum;
 import com.jiangjing.im.common.enums.DelFlagEnum;
 import com.jiangjing.im.common.enums.command.MessageCommand;
 import com.jiangjing.im.common.model.ClientInfo;
+import com.jiangjing.im.common.model.message.MessageBody;
 import com.jiangjing.im.common.model.message.MessageContent;
 import com.jiangjing.im.common.model.message.OfflineMessageContent;
 import com.jiangjing.im.service.message.model.req.SendMessageReq;
 import com.jiangjing.im.service.message.model.resp.SendMessageResp;
 import com.jiangjing.im.service.sequence.RedisSeq;
-import com.jiangjing.im.service.utils.CallbackService;
-import com.jiangjing.im.service.utils.ConversationIdGenerate;
-import com.jiangjing.im.service.utils.MessageProducer;
-import com.jiangjing.im.service.utils.ThreadPoolExecutorUtils;
+import com.jiangjing.im.service.utils.*;
 import com.jiangjing.pack.message.ChatMessageAck;
 import com.jiangjing.pack.message.MessageReceiveServerAckPack;
 import org.slf4j.Logger;
@@ -62,6 +63,12 @@ public class P2PMessageService {
 
     @Autowired
     CallbackService callbackService;
+
+    @Autowired
+    AgentChatService agentChatService;
+
+    @Autowired
+    SnowflakeIdWorker snowflakeIdWorker;
 
     /**
      * 消息的即时性做出的优化（同时多线程和 mq 的异步处理都会造成消息的无序性）
@@ -152,6 +159,8 @@ public class P2PMessageService {
             if (clientInfos.isEmpty()) {
                 receiverAck(messageContent);
             }
+            // 只能对话
+            callAgentChat(messageContent);
             // 5、发送完消息之后，回调业务接口
             if (appConfig.isSendMessageAfterCallback()) {
                 callbackService.callback(messageContent.getAppId(), Constants.CallbackCommand.SEND_MESSAGE_AFTER, JSON.toJSONString(messageContent));
@@ -254,5 +263,39 @@ public class P2PMessageService {
         sendMessageResp.setMessageKey(messageContent.getMessageKey());
         sendMessageResp.setMessageTime(System.currentTimeMillis());
         return sendMessageResp;
+    }
+
+    /**
+     * 接入智能对话，userId 为 324431782084609 作为智能对话端
+     * @param messageContent
+     */
+    public void callAgentChat(MessageContent messageContent) {
+        String toId = messageContent.getToId();
+        if ("324431782084609".equals(toId)) {
+            String content = JSON.parseObject(messageContent.getMessageBody(), MessageBody.class).getContent();
+            Message userMsg = Message.builder().role(Role.USER.getValue()).content(content).build();
+            MessageContent msgResult = new MessageContent();
+            BeanUtils.copyProperties(messageContent, msgResult);
+            msgResult.setFromId(toId);
+            msgResult.setToId(messageContent.getFromId());
+            msgResult.setMessageId(String.valueOf(snowflakeIdWorker.nextId()));
+            // 智能对话，直接构造消息继续返回
+            try {
+                agentChatService.streamCallWithCallback(userMsg, (generationResult) -> {
+                    MessageBody messageBody = new MessageBody(generationResult.getOutput().getChoices().get(0).getMessage().getContent());
+                    msgResult.setMessageBody(JSONObject.from(messageBody).toJSONString());
+                    dispatchMessage(msgResult);
+                }, (stringBuilder) -> {
+                    MessageBody messageBody = new MessageBody(stringBuilder.toString());
+                    msgResult.setMessageBody(JSONObject.from(messageBody).toJSONString());
+                    // 同步给智能对话的接收端
+                    syncToSender(msgResult, new ClientInfo(messageContent.getAppId(), 99, ""));
+                    // 持久化消息
+                    messageStoreService.storeP2pMessage(msgResult);
+                });
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+            }
+        }
     }
 }

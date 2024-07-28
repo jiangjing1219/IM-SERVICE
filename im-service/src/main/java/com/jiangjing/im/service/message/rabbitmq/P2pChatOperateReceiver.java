@@ -55,43 +55,47 @@ public class P2pChatOperateReceiver {
     @RabbitListener(
             bindings = @QueueBinding(value = @Queue(value = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE, durable = "true"), exchange = @Exchange(value = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE), key = Constants.RabbitConstants.IM_2_MESSAGE_SERVICE), concurrency = "10"
     )
-    public void onChatMessage(@Payload Message message, @Headers Map<String, Object> headers, Channel channel) throws IOException {
+    public void onChatMessage(@Payload Message message, @Headers Map<String, Object> headers, Channel channel) {
         String msg = new String(message.getBody(), StandardCharsets.UTF_8);
         logger.info("CHAT MSG FORM QUEUE ::: {}", msg);
         try {
             JSONObject messageJson = JSON.parseObject(msg);
-            // 获取消息的指令类型，单聊/群聊
             Integer command = messageJson.getInteger("command");
-            // 单聊消息
-            if (command == MessageCommand.MSG_P2P.getCommand()) {
-                // 处理消息
-                MessageContent messageContent = messageJson.toJavaObject(MessageContent.class);
-                p2PMessageService.process(messageContent);
-                // 接收端接收到消息回复的 ack 消息
-            } else if (command == MessageCommand.MSG_RECEIVE_ACK.getCommand()) {
-                // 解析 ack 确认包的信息
-                MessageReceiveAckContent receiveAckContent = messageJson.toJavaObject(MessageReceiveAckContent.class);
-                messageSyncService.receiveMark(receiveAckContent);
-            } else if (command == MessageCommand.MSG_READED.getCommand()) {
-                // 接收方读取到消息之后，回复 MSG_READED
-                MessageReadedContent messageContent = messageJson.toJavaObject(MessageReadedContent.class);
-                messageSyncService.readMark(messageContent);
-            } else if (command == MessageCommand.MSG_RECALL.getCommand()) {
-                // 接收到单聊消息的撤回指令
-                RecallMessageContent messageContent = messageJson.toJavaObject(RecallMessageContent.class);
-                messageSyncService.recallMessage(messageContent);
+            processMessage(command, messageJson);
+
+            try {
+                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            } catch (IOException e) {
+                logger.error("Ack failed, message will be retried: {}", msg, e);
+                try {
+                    channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+                } catch (IOException nackEx) {
+                    logger.error("Nack failed: {}", nackEx.getMessage(), nackEx);
+                }
             }
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
-        } catch (IOException e) {
-            logger.error("处理消息出现异常：{}", e.getMessage());
-            logger.error("RMQ_CHAT_TRAN_ERROR", e);
-            logger.error("NACK_MSG:{}", msg);
-            /*
-             * param1:需要取人的消息id
-             * param2:是否批量确认此id之前的所有消息
-             * param3: true 消息重新发送，false 消息丢弃
-             */
-            channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+        } catch (Exception e) {
+            logger.error("Processing message failed: {}", msg, e);
+            try {
+                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+            } catch (IOException nackEx) {
+                logger.error("Nack failed: {}", nackEx.getMessage(), nackEx);
+            }
+        }
+    }
+
+    private void processMessage(Integer command, JSONObject messageJson) {
+        if (command == MessageCommand.MSG_P2P.getCommand()) {
+            MessageContent messageContent = messageJson.toJavaObject(MessageContent.class);
+            p2PMessageService.process(messageContent);
+        } else if (command == MessageCommand.MSG_RECEIVE_ACK.getCommand()) {
+            MessageReceiveAckContent receiveAckContent = messageJson.toJavaObject(MessageReceiveAckContent.class);
+            messageSyncService.receiveMark(receiveAckContent);
+        } else if (command == MessageCommand.MSG_READED.getCommand()) {
+            MessageReadedContent messageContent = messageJson.toJavaObject(MessageReadedContent.class);
+            messageSyncService.readMark(messageContent);
+        } else if (command == MessageCommand.MSG_RECALL.getCommand()) {
+            RecallMessageContent messageContent = messageJson.toJavaObject(RecallMessageContent.class);
+            messageSyncService.recallMessage(messageContent);
         }
     }
 }

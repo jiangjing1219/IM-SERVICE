@@ -316,7 +316,8 @@ public class ImFriendServiceImpl implements ImFriendService {
         AddFriendPack fromPack = new AddFriendPack();
         BeanUtils.copyProperties(fromItem, fromPack);
         fromPack.setSequence(friendshipSeq);
-        messageProducer.sendToUserByConditions(fromItem.getFromId(), req.getAppId(), req.getClientType(), req.getImei(), FriendshipEventCommand.FRIEND_ADD, fromPack);
+        //messageProducer.sendToUserByConditions(fromItem.getFromId(), req.getAppId(), req.getClientType(), req.getImei(), FriendshipEventCommand.FRIEND_ADD, fromPack);
+        messageProducer.sendToUserByAll(fromItem.getFromId(), req.getAppId(),FriendshipEventCommand.FRIEND_ADD, fromPack);
         // 被添加方，需要通知所有端
         AddFriendPack toPack = new AddFriendPack();
         BeanUtils.copyProperties(toItem_1, toPack);

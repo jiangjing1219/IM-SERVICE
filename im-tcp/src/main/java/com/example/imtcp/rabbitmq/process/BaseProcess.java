@@ -28,5 +28,6 @@ public abstract class BaseProcess {
         }
         processAfter();
     }
+
     protected abstract void processAfter();
 }
