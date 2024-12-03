@@ -78,7 +78,6 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         /**
                          * 初始化channel，客户端连接成功时回调
-                         * @param socketChannel
                          */
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {

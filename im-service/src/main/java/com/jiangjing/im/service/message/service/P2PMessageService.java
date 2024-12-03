@@ -41,7 +41,7 @@ import java.util.List;
 @Transactional
 public class P2PMessageService {
 
-    private static Logger logger = LoggerFactory.getLogger(P2PMessageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(P2PMessageService.class);
 
     @Autowired
     CheckSendMessageService checkSendMessageService;

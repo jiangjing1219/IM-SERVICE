@@ -23,22 +23,22 @@ import java.util.Map;
 
 /**
  * 监听指定的 mq 队列，获取单聊消息，并持久化消息
+ * @author scenery
  */
 @Component
 public class StoreP2PMessageReceiver {
 
-    private static Logger logger = LoggerFactory.getLogger(StoreP2PMessageReceiver.class);
+    private static final Logger logger = LoggerFactory.getLogger(StoreP2PMessageReceiver.class);
 
     @Autowired
     StoreMessageService storeMessageService;
-
 
     @RabbitListener(
             bindings = @QueueBinding(value = @Queue(value = Constants.RabbitConstants.STORE_P2P_MESSAGE, durable = "true"), exchange = @Exchange(value = Constants.RabbitConstants.STORE_P2P_MESSAGE), key = Constants.RabbitConstants.STORE_P2P_MESSAGE), concurrency = "10"
     )
     public void onChatMessage(@Payload Message message, @Headers Map<String, Object> headers, Channel channel) throws Exception {
         String messageStr = new String(message.getBody(), StandardCharsets.UTF_8);
-        // 转成发送前封装的对象
+        //  转成发送前封装的对象
         logger.info("CHAT MSG FORM QUEUE ::: {}", messageStr);
         try {
             // 是否支持复杂对象转换？ 需要调试确认
@@ -56,8 +56,5 @@ public class StoreP2PMessageReceiver {
              */
             channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
         }
-
     }
-
-
 }

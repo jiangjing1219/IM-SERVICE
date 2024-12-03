@@ -10,7 +10,7 @@
     <artifactId>im-service</artifactId>
     <packaging>jar</packaging>
 
-    <name>im-servce</name>
+    <name>im-service</name>
     <url>http://maven.apache.org</url>
 
     <properties>

@@ -23,11 +23,12 @@ import java.util.Map;
 
 /**
  * 监听指定的 mq 队列，获取群聊消息，并持久化消息
+ * @author scenery
  */
 @Component
 public class StoreGroupMessageReceiver {
 
-    private static Logger logger = LoggerFactory.getLogger(StoreGroupMessageReceiver.class);
+    private static final Logger logger = LoggerFactory.getLogger(StoreGroupMessageReceiver.class);
 
     @Autowired
     StoreMessageService storeMessageService;
@@ -56,8 +57,5 @@ public class StoreGroupMessageReceiver {
              */
             channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
         }
-
     }
-
-
 }
