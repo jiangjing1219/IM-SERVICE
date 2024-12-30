@@ -18,6 +18,8 @@
 [mybatis-SqlSession 创建流程](./logs/source/mybatis-SqlSession.png)
 ### 3、Mybatis- 创建Mapper的动态代理
 [Mybatis- 创建Mapper的动态代理](./logs/source/Mybatis-创建Mapper的动态代理.png)
+### 4、spring 整合 mybatis
+[spring 整合 mybatis](./logs/source/mybatis/spring整合mybatis.png)
 
 # 三、Netty 源码解析
 ### 1、Netty主流程解析
