@@ -1,0 +1,234 @@
+version: '3.8'
+
+services:
+  # Infrastructure services
+  mysql:
+    image: mysql:8.0
+    container_name: im-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: im
+    command: [
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci'
+    ]
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6.2
+    container_name: im-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: im-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    container_name: im-nacos
+    environment:
+      - MODE=standalone
+      - PREFER_HOST_MODE=ip
+      - JVM_XMS=512m
+      - JVM_XMX=512m
+      - JVM_XMN=256m
+    volumes:
+      - nacos_data:/home/nacos/data
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-nacos
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Application services
+  im-service:
+    build:
+      context: ./im-service
+      dockerfile: Dockerfile
+    container_name: im-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      nacos:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      # MySQL配置
+      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      # Redis配置
+      - SPRING_REDIS_HOST=im-redis
+      - SPRING_REDIS_PORT=6379
+      # RabbitMQ配置
+      - SPRING_RABBITMQ_HOST=im-rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_VIRTUAL_HOST=im
+      # Nacos配置
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR=im-nacos:8848
+      - DUBBO_REGISTRY_ADDRESS=nacos://im-nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_IP=im-service
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  im-message-store:
+    build:
+      context: ./im-message-store
+      dockerfile: Dockerfile
+    container_name: im-message-store
+    ports:
+      - "8001:8001"
+    depends_on:
+      im-service:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      # MySQL配置
+      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      # Redis配置
+      - SPRING_REDIS_HOST=im-redis
+      - SPRING_REDIS_PORT=6379
+      # RabbitMQ配置
+      - SPRING_RABBITMQ_HOST=im-rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_VIRTUAL_HOST=im
+      # Nacos配置
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR=im-nacos:8848
+      - DUBBO_REGISTRY_ADDRESS=nacos://im-nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_IP=im-message-store
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-message-store
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  im-tcp:
+    build:
+      context: ./im-tcp
+      dockerfile: Dockerfile
+    container_name: im-tcp
+    ports:
+      - "8002:8002"
+      - "9000:9000"
+      - "19001:19001"
+    depends_on:
+      im-message-store:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      # MySQL配置
+      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      # Redis配置
+      - SPRING_REDIS_HOST=im-redis
+      - SPRING_REDIS_PORT=6379
+      # RabbitMQ配置
+      - SPRING_RABBITMQ_HOST=im-rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_VIRTUAL_HOST=im
+      # Nacos配置
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR=im-nacos:8848
+      - DUBBO_REGISTRY_ADDRESS=nacos://im-nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_IP=im-tcp
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-tcp
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  im-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+  nacos_data: 
