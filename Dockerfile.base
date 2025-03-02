@@ -1,0 +1,14 @@
+FROM openjdk:8-jdk-alpine
+
+# Install required packages
+RUN apk add --no-cache curl tzdata
+
+# Set timezone
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Create app directory
+WORKDIR /app
+
+# Common environment variables
+ENV JAVA_OPTS="-Xms512m -Xmx512m -Djava.security.egd=file:/dev/./urandom" 
