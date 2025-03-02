@@ -44,3 +44,283 @@
 ![群聊展示](https://github.com/user-attachments/assets/25e011db-b2ca-4bc5-b444-c7e1d81afbf6)
 ### 8、登出页面
 ![登出页面](https://github.com/user-attachments/assets/aef6d0c7-ad26-402a-a56d-31a4fb051cc4)
+
+
+
+# IM-SERVICE 即时通讯系统
+
+基于 Spring Cloud、Netty 的分布式即时通讯系统。
+
+## 系统架构
+
+系统包含以下主要服务：
+
+- `im-service`: 核心业务服务
+- `im-message-store`: 消息存储服务
+- `im-tcp`: TCP 长连接服务
+
+## 环境要求
+
+- JDK 8+
+- Maven 3.6+
+- Docker 20.10+
+- Docker Compose 2.0+
+
+## 快速开始
+
+### 1. 项目打包
+
+```bash
+# 进入项目根目录
+cd IM-SERVICE
+
+# 打包所有服务（跳过测试）
+mvn clean package -DskipTests
+```
+
+### 2. 构建微服务镜像
+
+#### 2.1 构建基础镜像
+
+首先需要构建一个包含基础环境的 Docker 镜像，所有服务都将基于此镜像：
+
+```bash
+# 构建基础镜像
+docker build -t im-base:latest -f Dockerfile.base .
+```
+
+#### 2.2 构建各服务镜像
+
+可以使用以下命令分别构建各个服务的镜像：
+
+```bash
+# 构建 im-service 镜像
+cd im-service
+docker build -t im-service:latest .
+
+# 构建 im-message-store 镜像
+cd ../im-message-store
+docker build -t im-message-store:latest .
+
+# 构建 im-tcp 镜像
+cd ../im-tcp
+docker build -t im-tcp:latest .
+```
+
+或者使用 docker-compose 一次性构建所有服务镜像：
+
+```bash
+# 构建所有服务镜像
+docker-compose build
+
+# 构建单个服务镜像（例如只重新构建 im-service）
+docker-compose build im-service
+```
+
+#### 2.3 镜像构建说明
+
+各服务的 Dockerfile 主要包含以下步骤：
+
+1. im-service Dockerfile:
+```dockerfile
+FROM im-base:latest
+COPY target/im-service-1.0-SNAPSHOT.jar app.jar
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8000/actuator/health || exit 1
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+2. im-message-store Dockerfile:
+```dockerfile
+FROM im-base:latest
+COPY target/im-message-store-1.0-SNAPSHOT.jar app.jar
+EXPOSE 8001
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8001/actuator/health || exit 1
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+3. im-tcp Dockerfile:
+```dockerfile
+FROM im-base:latest
+COPY target/im-tcp-1.0-SNAPSHOT.jar app.jar
+EXPOSE 8002 9000
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8002/actuator/health || exit 1
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+#### 2.4 镜像管理命令
+
+```bash
+# 查看构建的镜像
+docker images | grep im-
+
+# 删除特定镜像
+docker rmi [image_name]:[tag]
+
+# 清理所有未使用的镜像
+docker image prune -a
+
+# 查看镜像构建历史
+docker history [image_name]:[tag]
+
+# 保存镜像到文件
+docker save -o [filename].tar [image_name]:[tag]
+
+# 从文件加载镜像
+docker load -i [filename].tar
+```
+
+### 3. 构建基础设施
+
+项目依赖以下基础服务：
+
+- MySQL 8.0: 数据持久化
+- Redis 6.2: 缓存服务
+- RabbitMQ 3.x: 消息队列
+- Nacos 2.2.3: 服务注册与发现
+
+这些服务已在 docker-compose.yml 中配置好，无需单独安装。
+
+### 4. 初始化配置
+
+```bash
+# 创建 RabbitMQ 初始化脚本
+cat > init-rabbitmq.sh << 'EOF'
+#!/bin/sh
+until rabbitmqctl wait --timeout 60 /var/lib/rabbitmq/mnesia/rabbit@$HOSTNAME.pid; do
+    echo "Waiting for RabbitMQ to start..."
+    sleep 2
+done
+rabbitmqctl add_vhost im
+rabbitmqctl set_permissions -p im guest ".*" ".*" ".*"
+echo "RabbitMQ has been initialized!"
+EOF
+
+# 添加执行权限
+chmod +x init-rabbitmq.sh
+```
+
+### 5. 启动服务
+
+```bash
+# 启动所有服务
+docker-compose up -d
+
+# 查看服务启动状态
+docker-compose ps
+
+# 查看服务日志
+docker-compose logs -f [service_name]
+```
+
+服务启动顺序：
+1. 基础设施服务（MySQL, Redis, RabbitMQ, Nacos）
+2. im-service
+3. im-message-store
+4. im-tcp
+
+### 6. 服务访问
+
+服务启动后，可通过以下地址访问：
+
+- Nacos 控制台: http://localhost:8848/nacos
+  - 用户名: nacos
+  - 密码: nacos
+- RabbitMQ 管理界面: http://localhost:15672
+  - 用户名: guest
+  - 密码: guest
+- 业务服务接口:
+  - im-service: http://localhost:8000
+  - im-message-store: http://localhost:8001
+  - im-tcp: 
+    - HTTP: http://localhost:8002
+    - TCP: localhost:9000
+
+### 7. 常用运维命令
+
+```bash
+# 停止所有服务
+docker-compose down
+
+# 重新构建并启动特定服务
+docker-compose up -d --build [service_name]
+
+# 查看服务日志
+docker-compose logs -f [service_name]
+
+# 进入容器内部
+docker-compose exec [service_name] sh
+
+# 查看服务状态
+docker-compose ps
+
+# 重启特定服务
+docker-compose restart [service_name]
+```
+
+### 8. 数据持久化
+
+所有服务的数据都通过 Docker volumes 持久化：
+
+- MySQL 数据: mysql_data
+- Redis 数据: redis_data
+- RabbitMQ 数据: rabbitmq_data
+- Nacos 数据: nacos_data
+
+### 9. 网络配置
+
+所有服务都在 `im-network` 网络下运行，服务间通过服务名互相访问：
+
+- MySQL: im-mysql:3306
+- Redis: im-redis:6379
+- RabbitMQ: im-rabbitmq:5672
+- Nacos: im-nacos:8848
+
+### 10. 故障排查
+
+1. 服务启动失败
+   ```bash
+   # 查看服务日志
+   docker-compose logs -f [service_name]
+   ```
+
+2. 网络连接问题
+   ```bash
+   # 检查网络配置
+   docker network inspect im-network
+   ```
+
+3. 数据持久化问题
+   ```bash
+   # 查看数据卷
+   docker volume ls
+   docker volume inspect [volume_name]
+   ```
+
+### 11. 注意事项
+
+1. 首次启动时，确保 Maven 已正确安装并配置
+2. 确保 Docker 和 Docker Compose 已正确安装
+3. 确保所需端口未被占用
+4. 服务启动可能需要一定时间，请耐心等待
+5. 如遇到权限问题，请使用管理员权限运行命令
+
+## 技术栈
+
+- Spring Boot
+- Spring Cloud
+- Netty
+- MySQL
+- Redis
+- RabbitMQ
+- Nacos
+- Docker
+- Docker Compose
+
+## 贡献指南
+
+欢迎提交 Issue 和 Pull Request。
+
+## 许可证
+
+[MIT License](LICENSE)
