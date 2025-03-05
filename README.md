@@ -102,6 +102,10 @@ docker build -t im-service:latest .
 cd ../im-message-store
 docker build -t im-message-store:latest .
 
+# 构建 im-app-business 镜像
+cd ../im-app-business
+docker build -t im-app-business:latest .
+
 # 构建 im-tcp 镜像
 cd ../im-tcp
 docker build -t im-tcp:latest .
@@ -211,6 +215,9 @@ docker-compose ps
 
 # 查看服务日志
 docker-compose logs -f [service_name]
+
+# 停止并删除现有容器和网络
+docker-compose down -v
 ```
 
 服务启动顺序：

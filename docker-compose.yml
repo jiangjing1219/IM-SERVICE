@@ -180,6 +180,46 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+  
+  im-app-business:
+    build:
+      context: ./im-app-business
+      dockerfile: Dockerfile
+    container_name: im-app-business
+    ports:
+      - "8300:8300"
+    depends_on:
+      im-service:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      # MySQL配置
+      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      # Redis配置
+      - SPRING_REDIS_HOST=im-redis
+      - SPRING_REDIS_PORT=6379
+      # RabbitMQ配置
+      - SPRING_RABBITMQ_HOST=im-rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_VIRTUAL_HOST=im
+      # Nacos配置
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR=im-nacos:8848
+      - DUBBO_REGISTRY_ADDRESS=nacos://im-nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_IP=im-message-store
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-app-business
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8300/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   im-tcp:
     build:

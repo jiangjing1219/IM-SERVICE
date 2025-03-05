@@ -3,11 +3,11 @@ spring:
     active: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    password: root1234
-    url: jdbc:mysql://127.0.0.1:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+    password: root
+    url: jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
     username: root
   rabbitmq:
-    host: 127.0.0.1
+    host: im-rabbitmq
     port: 5672
     username: root
     password: root
@@ -23,7 +23,7 @@ spring:
         retry:
           max-attempts: 5
   redis:
-    host: 127.0.0.1
+    host: im-redis
     port: 6379
   aop:
     proxy-target-class: true
@@ -33,8 +33,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
-        namespace: 9f577c91-9bf9-4878-9f25-7fab071f8dff
+        server-addr: im-nacos:8848
 server:
   port: 8000
 
@@ -42,7 +41,7 @@ dubbo:
   application:
     name: message_service_dubbo
   registry:
-    address: nacos://localhost:8848
+    address: nacos://im-nacos:8848
   protocol:
     name: dubbo
     port: -1 # 为了随机分配端口
@@ -55,7 +54,7 @@ appConfig:
   groupMaxMemberCount: 500
   sendMessageCheckFriend: false # 发送消息是否校验关系链
   sendMessageCheckBlack: false # 发送消息是否校验黑名单
-  callbackUrl: http://127.0.0.1:8300/callback
+  callbackUrl: http://im-service:8300/callback
   modifyUserAfterCallback: false # 用户资料变更之后回调开关
   addFriendAfterCallback: false # 添加好友之后回调开关
   addFriendBeforeCallback: false # 添加好友之前回调开关
@@ -93,3 +92,16 @@ mybatis-plus:
 logging:
   level:
     com.baomidou.mybatisplus.samples: debug
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  health:
+    defaults:
+      enabled: true
