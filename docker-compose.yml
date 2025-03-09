@@ -14,6 +14,7 @@ services:
     ]
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./im-mysql-init:/docker-entrypoint-initdb.d
     ports:
       - "3306:3306"
     restart: always
@@ -178,7 +179,7 @@ services:
         aliases:
           - im-message-store
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8200/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -229,7 +230,7 @@ services:
       dockerfile: Dockerfile
     container_name: im-tcp
     ports:
-      - "8002:8002"
+      - "8100:8100"
       - "9000:9000"
       - "19001:19001"
     depends_on:

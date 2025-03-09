@@ -3,9 +3,6 @@ FROM im-base:latest
 # Copy the jar file
 COPY target/im-service-1.0-SNAPSHOT.jar app.jar
 
-# Copy the init.sql file
-COPY src/main/resources/init.sql /app/init.sql
-
 # Environment variables
 ENV MYSQL_HOST=mysql \
     MYSQL_PORT=3306 \
