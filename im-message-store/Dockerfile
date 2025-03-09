@@ -18,10 +18,10 @@ ENV MYSQL_HOST=mysql \
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:8001/actuator/health || exit 1
+  CMD curl -f http://localhost:8200/actuator/health || exit 1
 
 # Start the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 
 # Expose the service port
-EXPOSE 8001 
+EXPOSE 8200
