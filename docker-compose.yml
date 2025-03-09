@@ -114,7 +114,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       # MySQL配置
-      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       # Redis配置
@@ -154,7 +154,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       # MySQL配置
-      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       # Redis配置
@@ -194,7 +194,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       # MySQL配置
-      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       # Redis配置
@@ -236,7 +236,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       # MySQL配置
-      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8
+      - SPRING_DATASOURCE_URL=jdbc:mysql://im-mysql:3306/im?serverTimezone=UTC&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       # Redis配置

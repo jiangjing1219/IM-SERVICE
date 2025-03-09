@@ -109,6 +109,10 @@ docker build -t im-app-business:latest .
 # 构建 im-tcp 镜像
 cd ../im-tcp
 docker build -t im-tcp:latest .
+
+# 关闭本地 mysql
+按下 Win + R 打开运行窗口，输入 services.msc，回车。
+在服务列表中找到你的 MySQL 服务（名称可能是 MySQL, MySQL80, MySQL57 等，取决于你的版本）。
 ```
 
 或者使用 docker-compose 一次性构建所有服务镜像：

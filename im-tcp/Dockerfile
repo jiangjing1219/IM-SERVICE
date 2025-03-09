@@ -16,14 +16,15 @@ ENV MYSQL_HOST=mysql \
     RABBITMQ_VIRTUAL_HOST=im \
     NACOS_SERVER_ADDR=nacos:8848 \
     TCP_PORT=9000 \
-    TCP_PORT=19001
+    TCP_PORT=19001 \
+    HOST_IP=192.168.1.2
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:8002/actuator/health || exit 1
+  CMD curl -f http://localhost:8100/actuator/health || exit 1
 
 # Start the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 
 # Expose the service ports
-EXPOSE 8002 9000 19001
+EXPOSE 8100 9000 19001

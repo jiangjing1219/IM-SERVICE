@@ -31,6 +31,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * @author jingjing
@@ -57,6 +58,20 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
     private ChannelFuture serverChannelFuture;
     private NamingService naming;
 
+    /**
+     * 获取用于注册的IP地址
+     * 优先使用环境变量或系统属性中的HOST_IP，如果没有则使用本地IP
+     */
+    private String getRegistrationIp() throws UnknownHostException {
+        // 获取宿主机 IP，优先从环境变量获取，如果没有则使用本地 IP
+        String hostIp = System.getenv("HOST_IP");
+        logger.info("获取环境变量的地址为：{}", hostIp);
+        if (hostIp == null || hostIp.isEmpty()) {
+            hostIp = InetAddress.getLocalHost().getHostAddress();
+            logger.info("获取环境变量的地址为空，获取容器的地址为：{}", hostIp);
+        }
+        return hostIp;
+    }
 
     /**
      * Spring 容器启动成功之后会调用该方法
@@ -103,16 +118,20 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
                         }
                     });
             serverChannelFuture = serverBootstrap.bind(imConfigInfo.getWebSocketPort()).sync();
+
             // 向 Nacos 发起注册
             naming = NamingFactory.createNamingService(nacosDiscoveryProperties.getServerAddr());
-            naming.registerInstance(Constants.IM_NACOS_SERVICE_WEB, InetAddress.getLocalHost().getHostAddress(), imConfigInfo.getWebSocketPort(), "DEFAULT");
+            String registrationIp = getRegistrationIp();
+            naming.registerInstance(Constants.IM_NACOS_SERVICE_WEB, registrationIp, imConfigInfo.getWebSocketPort(), "DEFAULT");
             logger.info("WebSocket server started,bind port is " + imConfigInfo.getWebSocketPort());
         } else if (event instanceof ContextClosedEvent) {
             // 容器关闭时，关闭服务端
             serverChannelFuture.channel().close();
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_WEB, InetAddress.getLocalHost().getHostAddress(), imConfigInfo.getWebSocketPort(), "DEFAULT");
+
+            String registrationIp = getRegistrationIp();
+            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_WEB, registrationIp, imConfigInfo.getWebSocketPort(), "DEFAULT");
             logger.info("WebSocket server closed,port:" + imConfigInfo.getTcpPort());
         }
     }

@@ -30,6 +30,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * @author jingjing
@@ -58,6 +59,21 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
     NamingService naming;
 
     /**
+     * 获取用于注册的IP地址
+     * 优先使用环境变量或系统属性中的HOST_IP，如果没有则使用本地IP
+     */
+    private String getRegistrationIp() throws UnknownHostException {
+        // 获取宿主机 IP，优先从环境变量获取，如果没有则使用本地 IP
+        String hostIp = System.getenv("HOST_IP");
+        logger.info("获取环境变量的地址为：{}", hostIp);
+        if (hostIp == null || hostIp.isEmpty()) {
+            hostIp = InetAddress.getLocalHost().getHostAddress();
+            logger.info("获取环境变量的地址为空，获取容器的地址为：{}", hostIp);
+        }
+        return hostIp;
+    }
+
+    /**
      * Spring 容器启动成功之后会调用该方法
      *
      * @param event
@@ -65,6 +81,8 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
     @SneakyThrows
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
+        // 取消注册
+        String registrationIp = getRegistrationIp();
         if (event instanceof ContextRefreshedEvent) {
             bossGroup = new NioEventLoopGroup(imConfigInfo.getBossThreadSize());
             workerGroup = new NioEventLoopGroup(imConfigInfo.getWorkThreadSize());
@@ -93,13 +111,12 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
             logger.info("Netty server started, bind port is " + imConfigInfo.getTcpPort());
             // 向 Nacos 发起注册
             naming = NamingFactory.createNamingService(nacosDiscoveryProperties.getServerAddr());
-            naming.registerInstance(Constants.IM_NACOS_SERVICE_TCP, InetAddress.getLocalHost().getHostAddress(), imConfigInfo.getTcpPort(), "DEFAULT");
+            naming.registerInstance(Constants.IM_NACOS_SERVICE_TCP, registrationIp, imConfigInfo.getTcpPort(), "DEFAULT");
         } else if (event instanceof ContextClosedEvent) {
             serverChannelFuture.channel().close();
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-            // 取消注册
-            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_TCP, InetAddress.getLocalHost().getHostAddress(), imConfigInfo.getTcpPort(), "DEFAULT");
+            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_TCP, registrationIp, imConfigInfo.getTcpPort(), "DEFAULT");
             logger.info("Netty server closed, port:{}", imConfigInfo.getTcpPort());
         }
     }
