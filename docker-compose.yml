@@ -47,11 +47,13 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3-management
+    build:
+      context: ./im-rabbitmq
+      dockerfile: Dockerfile
     container_name: im-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: root
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -123,8 +125,8 @@ services:
       # RabbitMQ配置
       - SPRING_RABBITMQ_HOST=im-rabbitmq
       - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
       - SPRING_RABBITMQ_VIRTUAL_HOST=im
       # Nacos配置
       - SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR=im-nacos:8848
@@ -147,7 +149,7 @@ services:
       dockerfile: Dockerfile
     container_name: im-message-store
     ports:
-      - "8001:8001"
+      - "8200:8200"
     depends_on:
       im-service:
         condition: service_healthy
@@ -163,8 +165,8 @@ services:
       # RabbitMQ配置
       - SPRING_RABBITMQ_HOST=im-rabbitmq
       - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
       - SPRING_RABBITMQ_VIRTUAL_HOST=im
       # Nacos配置
       - SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR=im-nacos:8848
@@ -180,7 +182,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-  
+
   im-app-business:
     build:
       context: ./im-app-business
@@ -203,8 +205,8 @@ services:
       # RabbitMQ配置
       - SPRING_RABBITMQ_HOST=im-rabbitmq
       - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
       - SPRING_RABBITMQ_VIRTUAL_HOST=im
       # Nacos配置
       - SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR=im-nacos:8848
@@ -245,8 +247,8 @@ services:
       # RabbitMQ配置
       - SPRING_RABBITMQ_HOST=im-rabbitmq
       - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=root
       - SPRING_RABBITMQ_VIRTUAL_HOST=im
       # Nacos配置
       - SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR=im-nacos:8848
@@ -271,4 +273,4 @@ volumes:
   mysql_data:
   redis_data:
   rabbitmq_data:
-  nacos_data: 
+  nacos_data:

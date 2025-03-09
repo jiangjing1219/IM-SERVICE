@@ -14,8 +14,8 @@ ENV MYSQL_HOST=mysql \
     MYSQL_PASSWORD=root \
     RABBITMQ_HOST=rabbitmq \
     RABBITMQ_PORT=5672 \
-    RABBITMQ_USERNAME=guest \
-    RABBITMQ_PASSWORD=guest \
+    RABBITMQ_USERNAME=root \
+    RABBITMQ_PASSWORD=root \
     RABBITMQ_VIRTUAL_HOST=im \
     NACOS_SERVER_ADDR=nacos:8848
 
@@ -27,4 +27,4 @@ HEALTHCHECK --interval=30s --timeout=3s \
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 
 # Expose the service port
-EXPOSE 8000 
+EXPOSE 8000
