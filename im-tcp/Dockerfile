@@ -17,7 +17,7 @@ ENV MYSQL_HOST=mysql \
     NACOS_SERVER_ADDR=nacos:8848 \
     TCP_PORT=9000 \
     TCP_PORT=19001 \
-    HOST_IP=192.168.1.2
+    HOST_IP=172.20.192.1
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s \

@@ -266,6 +266,22 @@ services:
       timeout: 10s
       retries: 3
 
+  im-vue-ui:
+    build:
+      context: ./im-vue-ui
+      dockerfile: Dockerfile
+    container_name: im-vue-ui
+    ports:
+      - "80:80"
+    depends_on:
+      im-tcp:
+        condition: service_healthy
+    restart: always
+    networks:
+      im-network:
+        aliases:
+          - im-vue-ui
+
 networks:
   im-network:
     driver: bridge

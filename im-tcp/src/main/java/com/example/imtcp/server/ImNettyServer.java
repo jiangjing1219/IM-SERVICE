@@ -81,8 +81,6 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
     @SneakyThrows
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
-        // 取消注册
-        String registrationIp = getRegistrationIp();
         if (event instanceof ContextRefreshedEvent) {
             bossGroup = new NioEventLoopGroup(imConfigInfo.getBossThreadSize());
             workerGroup = new NioEventLoopGroup(imConfigInfo.getWorkThreadSize());
@@ -111,12 +109,12 @@ public class ImNettyServer implements ApplicationListener<ApplicationEvent> {
             logger.info("Netty server started, bind port is " + imConfigInfo.getTcpPort());
             // 向 Nacos 发起注册
             naming = NamingFactory.createNamingService(nacosDiscoveryProperties.getServerAddr());
-            naming.registerInstance(Constants.IM_NACOS_SERVICE_TCP, registrationIp, imConfigInfo.getTcpPort(), "DEFAULT");
+            naming.registerInstance(Constants.IM_NACOS_SERVICE_TCP, getRegistrationIp(), imConfigInfo.getTcpPort(), "DEFAULT");
         } else if (event instanceof ContextClosedEvent) {
             serverChannelFuture.channel().close();
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_TCP, registrationIp, imConfigInfo.getTcpPort(), "DEFAULT");
+            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_TCP, getRegistrationIp(), imConfigInfo.getTcpPort(), "DEFAULT");
             logger.info("Netty server closed, port:{}", imConfigInfo.getTcpPort());
         }
     }

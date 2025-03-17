@@ -121,8 +121,7 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
 
             // 向 Nacos 发起注册
             naming = NamingFactory.createNamingService(nacosDiscoveryProperties.getServerAddr());
-            String registrationIp = getRegistrationIp();
-            naming.registerInstance(Constants.IM_NACOS_SERVICE_WEB, registrationIp, imConfigInfo.getWebSocketPort(), "DEFAULT");
+            naming.registerInstance(Constants.IM_NACOS_SERVICE_WEB, getRegistrationIp(), imConfigInfo.getWebSocketPort(), "DEFAULT");
             logger.info("WebSocket server started,bind port is " + imConfigInfo.getWebSocketPort());
         } else if (event instanceof ContextClosedEvent) {
             // 容器关闭时，关闭服务端
@@ -130,8 +129,7 @@ public class ImWebSocketServer implements ApplicationListener<ApplicationEvent> 
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
 
-            String registrationIp = getRegistrationIp();
-            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_WEB, registrationIp, imConfigInfo.getWebSocketPort(), "DEFAULT");
+            naming.deregisterInstance(Constants.IM_NACOS_SERVICE_WEB, getRegistrationIp(), imConfigInfo.getWebSocketPort(), "DEFAULT");
             logger.info("WebSocket server closed,port:" + imConfigInfo.getTcpPort());
         }
     }
