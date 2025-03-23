@@ -261,7 +261,7 @@ services:
         aliases:
           - im-tcp
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8100/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
